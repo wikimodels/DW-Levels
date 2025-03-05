@@ -1,0 +1,92 @@
+// deno-lint-ignore-file no-unused-vars
+import { Request, Response } from "npm:express@4.18.2";
+import { Coin } from "../models/coin.ts";
+import { fetchWorkingCoins } from "../functions/mongodb-working-coins/fetch-working-coins.ts";
+import { addWorkingCoin } from "../functions/mongodb-working-coins/add-working-coin.ts";
+
+import { deleteWorkingCoins } from "../functions/mongodb-working-coins/delete-working-coins.ts";
+import { updateWorkingCoin } from "../functions/mongodb-working-coins/update-working-coin.ts";
+
+export async function getWorkingCoinsController(req: Request, res: Response) {
+  try {
+    const coins = await fetchWorkingCoins();
+
+    return res.status(200).json(coins);
+  } catch (error) {
+    console.error("❌ Error fetching alerts:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+export const addWorkingCoinController = async (req: Request, res: Response) => {
+  try {
+    const coin: Coin = req.body;
+    const success = await addWorkingCoin(coin);
+
+    if (success) {
+      return res.status(201).json({ message: "Alert added successfully!" });
+    } else {
+      return res.status(500).json({ error: "Failed to add alert." });
+    }
+  } catch (error) {
+    console.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+export const deleteWorkingCoinsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { symbols } = req.body;
+
+    // ✅ Call function
+    const success = await deleteWorkingCoins(symbols);
+
+    if (success) {
+      return res.status(200).json({ message: "Alerts deleted successfully!" });
+    } else {
+      return res
+        .status(207)
+        .json({ message: "Some alerts might not have been deleted" });
+    }
+  } catch (error) {
+    console.error("❌ Error in deleteManyController:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updateWorkingCoinController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const {
+      filter,
+      updatedData,
+    }: { filter: Partial<Coin>; updatedData: Partial<Coin> } = req.body;
+
+    // Validate request body
+    if (!filter || Object.keys(filter).length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Filter is required for updating a coin." });
+    }
+    if (!updatedData || Object.keys(updatedData).length === 0) {
+      return res.status(400).json({ error: "Updated data cannot be empty." });
+    }
+
+    // ✅ Call the service function to update the coin
+    const success = await updateWorkingCoin(filter, updatedData);
+
+    if (success) {
+      return res.status(200).json({ message: "Coin updated successfully!" });
+    } else {
+      return res.status(500).json({ error: "Failed to update coin." });
+    }
+  } catch (error) {
+    console.error("❌ Error in updateWorkingCoinController:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
