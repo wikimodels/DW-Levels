@@ -21,13 +21,13 @@ export async function getMatchingAlerts(
           `price ${alert.price} high ${kline.highPrice} low ${kline.lowPrice}`
         );
         const activationTime = new Date().getTime();
+        alert._id = "";
         alert.id = crypto.randomUUID();
         alert.activationTime = activationTime;
         alert.activationTimeStr = UnixToTime(activationTime);
         alert.high = kline.highPrice;
         alert.low = kline.lowPrice;
         matchedAlerts.push(alert);
-        await addAlert(AlertsCollection.TriggeredAlerts, alert);
       }
     }
   }

@@ -88,6 +88,36 @@ export class AlertOperator {
     this.alertsData.get(collectionName)?.push(alert);
   }
 
+  public static async addManyAlerts(
+    collectionName: string,
+    alerts: Alert[]
+  ): Promise<void> {
+    if (!alerts.length) return; // No alerts to add
+
+    const collection = this.getCollection(collectionName);
+
+    try {
+      // Insert multiple alerts into the database
+      await collection.insertMany(alerts);
+
+      // 🔹 Fetch fresh alerts from the database to ensure accurate data
+      const updatedAlerts = await this.getAlertsFromDB(collectionName);
+
+      // 🔹 Update in-memory storage with fresh data
+      this.alertsData.set(collectionName, updatedAlerts);
+
+      console.log(
+        `✅ Successfully added ${alerts.length} alerts to ${collectionName}`
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error adding alerts to collection ${collectionName}:`,
+        error
+      );
+      throw new Error(`Failed to add alerts to collection ${collectionName}`);
+    }
+  }
+
   // Remove alerts from DB and update in-memory storage
   public static async removeAlerts(
     collectionName: string,
@@ -122,8 +152,8 @@ export class AlertOperator {
     updateData: Partial<Alert>
   ): Promise<void> {
     const collection = this.getCollection(collectionName);
-    await collection.updateOne(filter, { $set: updateData });
-
+    const res = await collection.updateOne(filter, { $set: updateData });
+    console.log("MODIFIED RES: ", res);
     // Update cache
     const alerts = this.alertsData.get(collectionName) || [];
     this.alertsData.set(

@@ -6,6 +6,7 @@ import { addWorkingCoin } from "../functions/mongodb-working-coins/add-working-c
 
 import { deleteWorkingCoins } from "../functions/mongodb-working-coins/delete-working-coins.ts";
 import { updateWorkingCoin } from "../functions/mongodb-working-coins/update-working-coin.ts";
+import { addManyWorkingCoins } from "../functions/mongodb-working-coins/add-many-working-coins.ts";
 
 export async function getWorkingCoinsController(req: Request, res: Response) {
   try {
@@ -34,6 +35,25 @@ export const addWorkingCoinController = async (req: Request, res: Response) => {
   }
 };
 
+export const addWorkingCoinsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const coins: Coin[] = req.body;
+    const success = await addManyWorkingCoins(coins);
+
+    if (success) {
+      return res.status(201).json({ message: "Coins added successfully!" });
+    } else {
+      return res.status(500).json({ error: "Failed to add alert." });
+    }
+  } catch (error) {
+    console.error("❌ Error in addWorkingCoinsController:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
 export const deleteWorkingCoinsController = async (
   req: Request,
   res: Response
@@ -45,7 +65,7 @@ export const deleteWorkingCoinsController = async (
     const success = await deleteWorkingCoins(symbols);
 
     if (success) {
-      return res.status(200).json({ message: "Alerts deleted successfully!" });
+      return res.status(200).json({ message: "Coins deleted successfully!" });
     } else {
       return res
         .status(207)

@@ -1,4 +1,4 @@
-import { checkKlineAgainstAlerts15m } from "../functions/kvdb-alerts/check-kline-against-alerts15m.ts";
+import { checkKlineAgainstAlerts15m } from "../functions/mongodb-alerts/check-kline-against-alerts15m.ts";
 import { UnixToNamedTimeRu } from "../functions/utils/time-converter.ts";
 
 export function cron15minJob() {

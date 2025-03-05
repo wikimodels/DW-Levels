@@ -1,4 +1,5 @@
 export interface Alert {
+  _id?: string;
   id: string;
   action: string;
   alertName: string;

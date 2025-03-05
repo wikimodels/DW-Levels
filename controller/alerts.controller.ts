@@ -101,6 +101,9 @@ export const updateAlertController = async (req: Request, res: Response) => {
     // collectionName: string,
     // filter: Partial<Alert>,
     // updateData: Partial<Alert>
+    console.log("Filter", filter);
+    console.log("UpdatedData", updatedData);
+
     const success = await updateAlert(collectionName, filter, updatedData);
 
     if (success) {

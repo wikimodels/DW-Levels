@@ -4,6 +4,7 @@ import { fetchProxyKline15m } from "../http/proxy-alerts-15m.ts";
 import { sendTriggeredAlertsReport } from "../tg/notifications/send-triggered-alerts-report.ts";
 import { fetchAlerts } from "./fetch-alerts.ts";
 import { getMatchingAlerts } from "./get-matching-alerts.ts";
+import { addManyAlerts } from "./add-many-alerts.ts";
 
 export async function checkKlineAgainstAlerts15m() {
   try {
@@ -22,7 +23,8 @@ export async function checkKlineAgainstAlerts15m() {
     const alerts = (await fetchAlerts(AlertsCollection.WorkingAlerts)).filter(
       (a) => a.isActive
     );
-
+    //TODO
+    console.log("Alerts fetched", alerts.length);
     if (!alerts || alerts.length === 0) {
       console.warn("No alerts found.");
       return;
@@ -34,6 +36,7 @@ export async function checkKlineAgainstAlerts15m() {
       return;
     }
     console.log(matchingAlerts);
+    await addManyAlerts(AlertsCollection.TriggeredAlerts, matchingAlerts);
     await sendTriggeredAlertsReport(projectName, matchingAlerts);
   } catch (error) {
     console.error("Error in checkKlineAgainstAlerts15m:", error);

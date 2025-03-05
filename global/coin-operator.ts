@@ -59,6 +59,14 @@ export class CoinOperator {
     this.coins.push(coin);
   }
 
+  // Add coin to DB and update in-memory storage
+  public static async addManyCoins(coins: Coin[]): Promise<void> {
+    const collection = this.getCollection();
+    await collection.insertMany(coins);
+    // Update cache
+    this.coins.push(...coins);
+  }
+
   // Remove coins from DB and update in-memory storage
   public static async removeCoins(symbols: string[]): Promise<void> {
     const collection = this.getCollection();
