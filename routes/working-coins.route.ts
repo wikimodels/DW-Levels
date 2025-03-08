@@ -4,7 +4,7 @@ import {
   addWorkingCoinsController,
   deleteWorkingCoinsController,
   getWorkingCoinsController,
-} from "../controller/coins.controller.ts";
+} from "../controller/working-coins.controller.ts";
 
 const router = express.Router();
 
