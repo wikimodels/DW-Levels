@@ -8,7 +8,7 @@ export async function fetchProxyKline15m(): Promise<
   Record<string, KlineData[]>
 > {
   try {
-    const url = env["ALERTS_15M"];
+    const url = env["KLINE_15M"];
     const response = await fetch(url, {
       method: "GET",
       headers: {
