@@ -1,7 +1,7 @@
 import { Request, Response } from "npm:express@4.18.2";
 
 import { AlertsCollection } from "../models/alerts-collections.ts";
-import { Alert } from "../models/alert.ts";
+
 import { addAlert } from "../functions/mongodb-alerts/add-alert.ts";
 import { updateAlert } from "../functions/mongodb-alerts/update-alert.ts";
 import { deleteMany } from "../functions/mongodb-alerts/delete-alerts.ts";
@@ -101,8 +101,6 @@ export const updateAlertController = async (req: Request, res: Response) => {
     // collectionName: string,
     // filter: Partial<Alert>,
     // updateData: Partial<Alert>
-    console.log("Filter", filter);
-    console.log("UpdatedData", updatedData);
 
     const success = await updateAlert(collectionName, filter, updatedData);
 

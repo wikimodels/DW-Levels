@@ -5,9 +5,10 @@ import { cron15minJob } from "./jobs/cron-15min.ts";
 import initializeAlertOperator from "./app/initialize-coin-operator.ts";
 import initializeCoinOperator from "./app/initialize-coin-operator.ts";
 import { AlertOperator } from "./global/alert-operator.ts";
+import initializeAnchoredVwapOperator from "./app/initialize-anchored-vwap-operator.ts";
 
 initializeCoinOperator()
-  .then(() => initializeAlertOperator())
+  .then(() => initializeAnchoredVwapOperator())
   .then(() => initializeApp())
   .then((app: Application) => {
     app.listen({ port: 80 }, "0.0.0.0", async () => {

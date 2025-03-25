@@ -6,6 +6,8 @@ import cors from "npm:cors";
 import proxyCoins from "../routes/proxy-coins.ts";
 import coins from "../routes/working-coins.route.ts";
 import alerts from "../routes/alerts.route.ts";
+import proxyKline from "../routes/proxy-kline.ts";
+import anchoredVwap from "../routes/anchored-vwap.route.ts";
 
 const { ORIGIN_I, ORIGIN_II, ORIGIN_III } = await load();
 const allowedOrigins = [ORIGIN_I, ORIGIN_II, ORIGIN_III];
@@ -19,8 +21,10 @@ const initializeApp = async (): Promise<Application> => {
     })
   );
   app.use("/api", proxyCoins);
+  app.use("/api", proxyKline);
   app.use("/api", coins);
   app.use("/api", alerts);
+  app.use("/api", anchoredVwap);
 
   return app;
 };
