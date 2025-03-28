@@ -1,8 +1,28 @@
 import { Request, Response } from "npm:express@4.18.2";
-import { AnchoredVwapOperator } from "../global/anchored-vwap-operator.ts";
-import { AnchorPoint } from "../models/anchor-point.ts";
+import { VwapChartOperator } from "../global/vwap-chart-operator.ts";
+import { VwapAlert } from "../models/vwap-alert.ts";
 
-export const getAnchorPoints = async (req: Request, res: Response) => {
+export const getAllAnchorPoints = async (req: Request, res: Response) => {
+  try {
+    const symbol = req.query.symbol as string;
+    console.log("symbol anchorPoints", symbol);
+    // Check if symbol is provided
+    if (!symbol) {
+      return res
+        .status(400)
+        .json({ error: "Symbol query parameter is required" });
+    }
+
+    const data = await VwapChartOperator.fetchAllAnchoredPoints();
+
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error saving anchor point:", error);
+    res.status(500).json({ error: "Internal Server Error", details: error });
+  }
+};
+
+export const getAnchorPointsBySymbol = async (req: Request, res: Response) => {
   try {
     const symbol = req.query.symbol as string; // Get symbol from query parameter
     console.log("symbol anchorPoints", symbol);
@@ -13,7 +33,7 @@ export const getAnchorPoints = async (req: Request, res: Response) => {
         .json({ error: "Symbol query parameter is required" });
     }
 
-    const data = await AnchoredVwapOperator.getAnchoredPointsCollection(symbol);
+    const data = await VwapChartOperator.getAnchoredPointsCollection(symbol);
 
     res.status(200).json(data);
   } catch (error) {
@@ -25,17 +45,15 @@ export const getAnchorPoints = async (req: Request, res: Response) => {
 // Controller to save an anchor point
 export const saveAnchorPoint = async (req: Request, res: Response) => {
   try {
-    const { symbol, openTime } = req.body;
-    //TODO: Add validation for symbol and openTime
-    console.log("symbol", symbol);
-    console.log("openTime", openTime);
-    if (!symbol || !openTime || isNaN(openTime)) {
-      return res
-        .status(400)
-        .json({ error: "Invalid input. Symbol and openTime are required." });
+    const alert: VwapAlert = req.body;
+
+    if (!alert.symbol || !alert.anchorTime || isNaN(alert.anchorTime)) {
+      return res.status(400).json({
+        error: "Invalid Vwap Alert Input. Symbol and anchorTime are required.",
+      });
     }
 
-    await AnchoredVwapOperator.saveAnchoredPoint(symbol, openTime);
+    await VwapChartOperator.saveAnchoredPoint(alert);
 
     res.status(201).json({ message: "Anchor point saved." });
   } catch (error) {
@@ -53,20 +71,12 @@ export const deleteAnchorPoint = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Symbol is required." });
     }
 
-    const anchoredPoins: AnchorPoint[] = [];
-    const result = await AnchoredVwapOperator.removeAnchorPoint(
-      symbol,
-      openTime
-    );
-
-    if (result.deletedCount !== 0 && result.acknowledged) {
-      const data = await AnchoredVwapOperator.getAnchoredPointsCollection(
-        symbol
-      );
-      anchoredPoins.push(...data);
+    if (!openTime) {
+      return res.status(400).json({ error: "Open time is required." });
     }
 
-    res.json(anchoredPoins);
+    const result = await VwapChartOperator.removeAnchorPoint(symbol, openTime);
+    res.json(result);
   } catch (error) {
     console.error("Error deleting VWAP data:", error);
     res.status(500).json({ error: "Internal Server Error", details: error });

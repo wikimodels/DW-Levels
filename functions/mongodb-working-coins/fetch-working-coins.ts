@@ -13,8 +13,12 @@ export async function fetchWorkingCoins(): Promise<Coin[]> {
 
     console.log(`[CoinOperator] Successfully fetched ${coins.length} coins.`);
     return coins;
-  } catch (error) {
-    console.error(`[CoinOperator] Error fetching coins:`, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`[CoinOperator] Failed to fetch coins`, {
+      error: err.message,
+      stack: err.stack,
+    });
     return [];
   }
 }

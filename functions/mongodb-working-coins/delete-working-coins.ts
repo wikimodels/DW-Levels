@@ -14,8 +14,13 @@ export async function deleteWorkingCoins(symbols: string[]): Promise<boolean> {
       `[CoinOperator] Successfully removed coins: ${symbols.join(", ")}`
     );
     return true;
-  } catch (error) {
-    console.error(`[CoinOperator] Error removing coins:`, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`[CoinOperator] Failed to delete ${symbols.length} coins`, {
+      error: err.message,
+      symbols: symbols,
+      stack: err.stack,
+    });
     return false;
   }
 }

@@ -1,9 +1,6 @@
-export interface Alert {
-  _id?: string;
+export interface VwapAlert {
+  _id: string;
   id: string;
-  action: string;
-  alertName: string;
-  description?: string;
   creationTime?: number;
   activationTime?: number;
   activationTimeStr?: string;
@@ -14,11 +11,11 @@ export interface Alert {
   isActive: boolean;
   symbol: string;
   category?: string;
-  status: string;
   tvLink?: string;
   cgLink?: string;
   exchanges?: string[];
   imageUrl?: string;
   anchorTime?: number;
+  anchorPrice?: number;
   anchorTimeStr?: string;
 }

@@ -13,8 +13,13 @@ export async function addWorkingCoin(coin: Coin): Promise<boolean> {
     await CoinOperator.addCoin(coin);
     console.log(`[CoinOperator] Successfully added coin: ${coin.symbol}`);
     return true;
-  } catch (error) {
-    console.error(`[CoinOperator] Error adding coin:`, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`[CoinOperator] Failed to add coin ${coin.symbol}`, {
+      error: err.message,
+      coin: coin.symbol,
+      stack: err.stack,
+    });
     return false;
   }
 }

@@ -24,8 +24,14 @@ export async function updateWorkingCoin(
       filter
     );
     return true;
-  } catch (error) {
-    console.error(`[CoinOperator] Error updating coin(s):`, error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error(`[CoinOperator] Failed to update coin(s)`, {
+      error: err.message,
+      filter: filter,
+      updateData: updateData,
+      stack: err.stack,
+    });
     return false;
   }
 }
