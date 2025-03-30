@@ -1,4 +1,5 @@
 import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
+
 import { VwapAlert } from "../../models/vwap-alert.ts";
 
 export async function updateVwapAlert(

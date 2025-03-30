@@ -1,33 +1,32 @@
-import { Alert } from "../../../../models/alert.ts";
-
+import { VwapAlert } from "../../../../models/vwap-alert.ts";
 import { UnixToNamedTimeRu } from "../../../utils/time-converter.ts";
 
-function formatAlertItem(alert: Alert, index: number): string {
+function formatVwapAlertItem(alert: VwapAlert, index: number): string {
   return `
 <b>${index + 1}. <a href="${alert.tvLink}">${alert.symbol}</a> ➡️ <i>${
-    alert.alertName
+    alert.anchorTimeStr
   }</i></b>
 `;
 }
 
 function formatReportTime(): string {
-  return `⏰ <b>Report Generated:</b> ${UnixToNamedTimeRu(
+  return `⏰ <b>VWAP Report Generated:</b> ${UnixToNamedTimeRu(
     new Date().getTime()
   )}`;
 }
 
-export function formatTriggeredAlertsMsg(
+export function formatTriggeredVwapAlertsMsg(
   projectName: string,
-  alerts: Alert[]
+  alerts: VwapAlert[]
 ): string {
   if (!alerts?.length) {
     return `<b>✴️ ${projectName}: NO TRIGGERED ALERTS</b>`;
   }
 
-  const alertItems = alerts.map(formatAlertItem).join("");
+  const alertItems = alerts.map(formatVwapAlertItem).join("");
 
   return `
-<b>✴️ ${projectName}: TRIGGERED ALERTS</b>
+<b>✴️ ${projectName}: TRIGGERED VWAP ALERTS</b>
 ${alertItems}
 ${formatReportTime()}
 `.trim();

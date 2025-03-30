@@ -4,7 +4,7 @@ import {
 } from "https://deno.land/x/mongo@v0.31.1/mod.ts";
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { DColors } from "../shared/colors.ts";
-import { AnchorPoint } from "../models/anchor-point.ts";
+
 import { VwapAlert } from "../models/vwap-alert.ts";
 import { VwapAlertOperator } from "./vwap-alert-operator.ts";
 

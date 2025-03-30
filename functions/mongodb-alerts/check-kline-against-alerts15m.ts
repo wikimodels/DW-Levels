@@ -5,8 +5,11 @@ import { sendTriggeredAlertsReport } from "../tg/notifications/send-triggered-al
 import { fetchAlerts } from "./fetch-alerts.ts";
 import { getMatchingAlerts } from "./get-matching-alerts.ts";
 import { addManyAlerts } from "./add-many-alerts.ts";
+import { KlineData } from "../../models/kline-data.ts";
 
-export async function checkKlineAgainstAlerts15m() {
+export async function checkKlineAgainstAlerts15m(
+  klineData: Record<symbol, KlineData[]>
+) {
   try {
     const env = await load();
     const projectName = env["PROJECT_NAME"];
@@ -15,7 +18,6 @@ export async function checkKlineAgainstAlerts15m() {
       throw new Error("Missing environment variable: PROJECT_NAME");
     }
 
-    const klineData = await fetchProxyKline15m();
     if (!klineData || Object.keys(klineData).length === 0) {
       throw new Error("Failed to fetch Kline data or received empty data.");
     }
