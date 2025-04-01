@@ -7,6 +7,7 @@ import { getMatchingVwapAlerts } from "./get-matching-vwap-alerts.ts";
 import { sendTriggeredVwapAlertsReport } from "../tg/notifications/send-triggered-vwap-alerts-report.ts";
 import { KlineData } from "../../models/kline-data.ts";
 import { removeDuplicateSymbols } from "../utils/remove-dubplicate-symbols.ts";
+import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 export async function checkKlineAgainstVwapAlerts15m(
   klineData: Record<symbol, KlineData[]>
@@ -44,6 +45,16 @@ export async function checkKlineAgainstVwapAlerts15m(
     await sendTriggeredVwapAlertsReport(projectName, matchingAlerts);
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
+    try {
+      const env = await load();
+      await sendErrorReport(
+        env["PROJECT_NAME"],
+        "checkKlineAgainstVwapAlerts15m",
+        err.toString()
+      );
+    } catch (reportError) {
+      console.error("Failed to send error report:", reportError);
+    }
     console.error("Failed to check kline against alerts", {
       error: err.message,
       operation: "15m kline check",

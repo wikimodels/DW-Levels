@@ -79,9 +79,7 @@ export const updateAlertController = async (req: Request, res: Response) => {
   try {
     const collectionName = req.query.collectionName as AlertsCollection;
     const { filter, updatedData } = req.body;
-    console.log("Filter", filter);
-    console.log("Coll.Name", collectionName);
-    console.log("updatedData", updatedData);
+
     if (!collectionName) {
       return res
         .status(400)
@@ -119,7 +117,7 @@ export const deleteManyController = async (req: Request, res: Response) => {
   try {
     const { collectionName } = req.query;
     const { ids } = req.body;
-    console.log("IDS", ids);
+
     // ✅ Validate parameters
     if (!collectionName || typeof collectionName !== "string") {
       return res
@@ -163,9 +161,6 @@ export const moveManyController = async (req: Request, res: Response) => {
     const { sourceCollection, targetCollection } = req.query;
     const ids = req.body; // Array of alerts to move
 
-    console.log("sourceCollection", sourceCollection);
-    console.log("targetCollection", targetCollection);
-    console.log("ids", ids);
     // ✅ Validate input parameters
     if (!sourceCollection || !targetCollection) {
       return res.status(400).json({

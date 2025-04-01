@@ -11,8 +11,7 @@ import { moveManyVwap } from "../functions/mongodb-vwap-alerts/move-many-vwap-al
 export async function getVwapAlertsController(req: Request, res: Response) {
   try {
     const collectionName = req.query.collectionName as string;
-    //TODO: Validate collectionName against the enum values
-    console.log("Collection Name", collectionName);
+
     if (!collectionName) {
       return res
         .status(400)
@@ -28,8 +27,7 @@ export async function getVwapAlertsController(req: Request, res: Response) {
     }
 
     const alerts = await fetchVwapAlerts(collectionName as AlertsCollection);
-    //TODO: Validate alerts against the expected structure
-    console.log("VWAP Alerts", alerts);
+
     return res.status(200).json(alerts);
   } catch (error) {
     console.error("❌ Error fetching alerts:", error);
@@ -84,9 +82,7 @@ export const updateVwapAlertController = async (
   try {
     const collectionName = req.query.collectionName as AlertsCollection;
     const { filter, updatedData } = req.body;
-    console.log("Filter", filter);
-    console.log("Coll.Name", collectionName);
-    console.log("updatedData", updatedData);
+
     if (!collectionName) {
       return res
         .status(400)
@@ -124,7 +120,7 @@ export const deleteManyVwapController = async (req: Request, res: Response) => {
   try {
     const { collectionName } = req.query;
     const { ids } = req.body;
-    console.log("IDS", ids);
+
     // ✅ Validate parameters
     if (!collectionName || typeof collectionName !== "string") {
       return res
@@ -170,7 +166,7 @@ export const deleteOneVwapController = async (req: Request, res: Response) => {
   try {
     const { collectionName } = req.query;
     const { id } = req.body;
-    console.log("ID", id);
+
     // ✅ Validate parameters
     if (!collectionName || typeof collectionName !== "string") {
       return res
@@ -211,9 +207,6 @@ export const moveManyVwapController = async (req: Request, res: Response) => {
     const { sourceCollection, targetCollection } = req.query;
     const ids = req.body; // Array of alerts to move
 
-    console.log("sourceCollection", sourceCollection);
-    console.log("targetCollection", targetCollection);
-    console.log("ids", ids);
     // ✅ Validate input parameters
     if (!sourceCollection || !targetCollection) {
       return res.status(400).json({

@@ -1,5 +1,7 @@
+import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { CoinOperator } from "../../global/coin-operator.ts";
 import { Coin } from "../../models/coin.ts";
+import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 export async function updateWorkingCoin(
   filter: Partial<Coin>,
@@ -26,6 +28,16 @@ export async function updateWorkingCoin(
     return true;
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
+    try {
+      const env = await load();
+      await sendErrorReport(
+        env["PROJECT_NAME"],
+        "updateWorkingCoin",
+        err.toString()
+      );
+    } catch (reportError) {
+      console.error("Failed to send error report:", reportError);
+    }
     console.error(`[CoinOperator] Failed to update coin(s)`, {
       error: err.message,
       filter: filter,

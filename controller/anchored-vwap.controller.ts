@@ -5,7 +5,7 @@ import { VwapAlert } from "../models/vwap-alert.ts";
 export const getAllAnchorPoints = async (req: Request, res: Response) => {
   try {
     const symbol = req.query.symbol as string;
-    console.log("symbol anchorPoints", symbol);
+
     // Check if symbol is provided
     if (!symbol) {
       return res
@@ -25,7 +25,7 @@ export const getAllAnchorPoints = async (req: Request, res: Response) => {
 export const getAnchorPointsBySymbol = async (req: Request, res: Response) => {
   try {
     const symbol = req.query.symbol as string; // Get symbol from query parameter
-    console.log("symbol anchorPoints", symbol);
+
     // Check if symbol is provided
     if (!symbol) {
       return res

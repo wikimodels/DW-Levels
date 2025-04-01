@@ -1,8 +1,6 @@
 import { Alert } from "../../models/alert.ts";
-import { AlertsCollection } from "../../models/alerts-collections.ts";
 import { KlineData } from "../../models/kline-data.ts";
 import { UnixToTime } from "../utils/time-converter.ts";
-import { addAlert } from "./add-alert.ts";
 
 export async function getMatchingAlerts(
   klinedata: Record<string, KlineData[]>,
@@ -14,6 +12,8 @@ export async function getMatchingAlerts(
     if (!alert.price || !alert.symbol || !klinedata[alert.symbol]) {
       continue;
     }
+    // Add a dummy await to satisfy the async requirement
+    await Promise.resolve();
 
     for (const kline of klinedata[alert.symbol]) {
       if (alert.price >= kline.lowPrice && alert.price <= kline.highPrice) {

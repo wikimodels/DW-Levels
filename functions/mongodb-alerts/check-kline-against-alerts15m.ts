@@ -1,11 +1,11 @@
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
-import { fetchProxyKline15m } from "../http/proxy-alerts-15m.ts";
 import { sendTriggeredAlertsReport } from "../tg/notifications/send-triggered-alerts-report.ts";
 import { fetchAlerts } from "./fetch-alerts.ts";
 import { getMatchingAlerts } from "./get-matching-alerts.ts";
 import { addManyAlerts } from "./add-many-alerts.ts";
 import { KlineData } from "../../models/kline-data.ts";
+import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 export async function checkKlineAgainstAlerts15m(
   klineData: Record<symbol, KlineData[]>
@@ -41,6 +41,17 @@ export async function checkKlineAgainstAlerts15m(
     await addManyAlerts(AlertsCollection.TriggeredAlerts, matchingAlerts);
     await sendTriggeredAlertsReport(projectName, matchingAlerts);
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    try {
+      const env = await load();
+      await sendErrorReport(
+        env["PROJECT_NAME"],
+        "checkKlineAgainstAlerts15m",
+        err.toString()
+      );
+    } catch (reportError) {
+      console.error("Failed to send error report:", reportError);
+    }
     console.error("Error in checkKlineAgainstAlerts15m:", error);
   }
 }

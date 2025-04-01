@@ -1,6 +1,7 @@
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { KlineData } from "../../models/kline-data.ts";
 import { TF } from "../../shared/timeframes.ts";
+import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 const env = await load();
 
@@ -44,6 +45,18 @@ export async function fetchProxyKlineBySymbol(
     } = await response.json();
     return data;
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+
+    try {
+      await sendErrorReport(
+        env["PROJECT_NAME"],
+        "fetchProxyKlineBySymbol",
+        err.toString()
+      );
+    } catch (reportError) {
+      console.error("Failed to send error report:", reportError);
+    }
+
     console.error("Failed to fetch Kline data:", error);
     return { symbol, timeframe, limit, data: [] }; // Ensure return type consistency
   }

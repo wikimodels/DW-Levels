@@ -1,5 +1,6 @@
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { Coin } from "../../models/coin.ts";
+import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 async function getEnv() {
   return await load();
@@ -26,6 +27,19 @@ export async function fetchProxyCoins(): Promise<Coin[]> {
     const data = await response.json();
     return data.coins;
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+
+    try {
+      const env = await load();
+      await sendErrorReport(
+        env["PROJECT_NAME"],
+        "fetchProxyCoins",
+        err.toString()
+      );
+    } catch (reportError) {
+      console.error("Failed to send error report:", reportError);
+    }
+
     console.error("Failed to fetch Kline data:", error);
     return [];
   }

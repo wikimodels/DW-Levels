@@ -33,7 +33,7 @@ export async function checkKlineAgainstAlerts15m() {
       console.info("No matching alerts found.");
       return;
     }
-    console.log(matchingAlerts);
+
     await sendTriggeredAlertsReport(projectName, matchingAlerts);
   } catch (error) {
     console.error("Error in checkKlineAgainstAlerts15m:", error);

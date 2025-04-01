@@ -1,14 +1,13 @@
 // deno-lint-ignore-file
 import { UnixToNamedTimeRu } from "../../../utils/time-converter.ts";
 
-export function formateFailedFunctionNotificationMsg(
+export function formateErrorNotificationMsg(
   projectName: string,
-  className: string,
   fnName: string,
   error: any
 ) {
   const msg = `
-  <b>🆘 ${projectName}:${className}:${fnName}() ERROR</b>
+  <b>🆘 ${projectName}:${fnName}() ERROR</b>
 <i>${error}</i>      
 <i>⏰ ${UnixToNamedTimeRu(new Date().getTime())}</i>   
 <i>&#160&#160&#160</i>`;

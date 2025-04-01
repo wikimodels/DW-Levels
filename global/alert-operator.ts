@@ -152,8 +152,8 @@ export class AlertOperator {
     updateData: Partial<Alert>
   ): Promise<void> {
     const collection = this.getCollection(collectionName);
-    const res = await collection.updateOne(filter, { $set: updateData });
-    console.log("MODIFIED RES: ", res);
+    await collection.updateOne(filter, { $set: updateData });
+
     // Update cache
     const alerts = this.alertsData.get(collectionName) || [];
     this.alertsData.set(
