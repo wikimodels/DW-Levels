@@ -38,7 +38,7 @@ export class AlertOperator {
       await this.loadAllData();
       console.log(
         "%c[DW-Levels] AlertOperator --> initialized...",
-        DColors.yellow
+        DColors.cyan
       );
     } catch (error) {
       console.error("❌ Failed to initialize AlertOperator:", error);

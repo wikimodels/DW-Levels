@@ -27,7 +27,7 @@ export class CoinOperator {
       // Load data into memory
       await this.loadCoins();
 
-      console.log("%c[DW-Levels] CoinRepo initialized...", DColors.magenta);
+      console.log("%c[DW-Levels] CoinRepo --> initialized...", DColors.magenta);
     }
   }
 

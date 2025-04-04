@@ -6,15 +6,10 @@ import {
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { VwapAlert } from "../models/vwap-alert.ts";
 import { DColors } from "../shared/colors.ts";
+import { AlertsCollection } from "../models/alerts-collections.ts";
 
 const env = await load();
 const MONGO_DB = env.MONGO_DB;
-
-if (!MONGO_DB) {
-  throw new Error(
-    "[DW-Levels] VwapAlertOperator --> MONGO_DB is not defined in the environment variables."
-  );
-}
 
 export class VwapAlertOperator {
   private static dbClient: MongoClient | null = null;
@@ -140,12 +135,7 @@ export class VwapAlertOperator {
     try {
       await collection.deleteMany({ id: { $in: alertIds } });
 
-      // Update cache
-      const updatedAlerts =
-        this.alertsData
-          .get(collectionName)
-          ?.filter((VwapAlert) => !alertIds.includes(VwapAlert.id)) || [];
-      this.alertsData.set(collectionName, updatedAlerts);
+      this.updateVwapRepo();
     } catch (error) {
       console.error(
         `Error removing alerts from collection ${collectionName}:`,
@@ -183,6 +173,14 @@ export class VwapAlertOperator {
     }
   }
 
+  public static async getVwapAlertsBySymbol(
+    symbol: string,
+    collectionName: string
+  ): Promise<VwapAlert[]> {
+    const collection = this.getCollection(collectionName);
+    return (await collection.find({ symbol }).toArray()) as VwapAlert[];
+  }
+
   // Update VwapAlert in DB and in-memory storage
   public static async updateAlert(
     collectionName: string,
@@ -205,5 +203,33 @@ export class VwapAlertOperator {
           : VwapAlert
       )
     );
+  }
+
+  public static async removeBySymbolAndOpenTime(
+    symbol: string,
+    collectionName: AlertsCollection,
+    openTime?: number
+  ) {
+    try {
+      // Filter condition based on whether anchorTime is provided
+      const filter = openTime
+        ? { symbol, anchorTime: Number(openTime) }
+        : { symbol };
+
+      // Perform the delete operation
+      const result = await this.getCollection(collectionName).deleteMany(
+        filter
+      );
+
+      // Check if the operation was successful
+      await VwapAlertOperator.updateVwapRepo();
+      return {
+        deletedCount: result, // Accessing deletedCount from result
+      };
+    } catch (error) {
+      // Catch any errors that occur during the delete operation
+      console.error("Error deleting VWAP data:", error);
+      throw new Error(`Failed to delete VWAP data: ${error}`);
+    }
   }
 }

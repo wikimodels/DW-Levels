@@ -7,6 +7,8 @@ import { addVwapAlert } from "../functions/mongodb-vwap-alerts/add-vwap-alert.ts
 import { updateVwapAlert } from "../functions/mongodb-vwap-alerts/update-vwap-alert.ts";
 import { deleteManyVwap } from "../functions/mongodb-vwap-alerts/delete-many-vwap-alerts.ts";
 import { moveManyVwap } from "../functions/mongodb-vwap-alerts/move-many-vwap-alerts.ts";
+import { fetchVwapAlertsBySymbol } from "../functions/mongodb-vwap-alerts/fetch-vwap-alerts-by-symbol.ts";
+import { deleteBySymbolAndOpenTime } from "../functions/mongodb-vwap-alerts/delete-by-symbol-and-open-time.ts";
 
 export async function getVwapAlertsController(req: Request, res: Response) {
   try {
@@ -162,6 +164,58 @@ export const deleteManyVwapController = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteBySymbolAndOpenTimeController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { symbol } = req.query;
+    const { collectionName } = req.query;
+    const { openTime } = req.query;
+
+    // ✅ Validate parameters
+    if (!symbol || typeof symbol !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Invalid or missing symbol parameter" });
+    }
+
+    // ✅ Validate parameters
+    if (!openTime) {
+      return res
+        .status(400)
+        .json({ error: "Invalid or missing openTime parameter" });
+    }
+
+    // ✅ Check if collectionName is a valid enum value
+    if (
+      !Object.values(AlertsCollection).includes(
+        collectionName as AlertsCollection
+      )
+    ) {
+      return res.status(400).json({ error: "Invalid collection name" });
+    }
+
+    // ✅ Call deleteMany function
+    const success = await deleteBySymbolAndOpenTime(
+      symbol,
+      collectionName as AlertsCollection,
+      openTime
+    );
+    console.log(symbol, collectionName, openTime);
+    if (success) {
+      return res.status(200).json({ message: "Alerts deleted successfully!" });
+    } else {
+      return res
+        .status(207)
+        .json({ message: "Some alerts might not have been deleted" });
+    }
+  } catch (error) {
+    console.error("❌ Error in deleteManyController:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const deleteOneVwapController = async (req: Request, res: Response) => {
   try {
     const { collectionName } = req.query;
@@ -247,5 +301,37 @@ export const moveManyVwapController = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("❌ Error in moveManyController:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getVwapAlertsBySymbolController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const symbol = req.query.symbol as string; // Get symbol from query parameter
+    const collectionName = req.query.collectionName as string; // Get symbol from query parameter
+
+    // Check if symbol is provided
+    if (!symbol) {
+      return res
+        .status(400)
+        .json({ error: "Symbol query parameter is required" });
+    }
+
+    if (!collectionName) {
+      return res
+        .status(400)
+        .json({ error: "CollectionName query parameter is required" });
+    }
+
+    const data = await fetchVwapAlertsBySymbol(
+      symbol,
+      collectionName as AlertsCollection
+    );
+    res.status(200).json(data);
+  } catch (error) {
+    console.error("Error saving anchor point:", error);
+    res.status(500).json({ error: "Internal Server Error", details: error });
   }
 };

@@ -3,11 +3,10 @@ import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import express, { Application } from "npm:express@4.18.2";
 import cors from "npm:cors";
 
-import proxyCoins from "../routes/proxy-coins.ts";
+import proxyCoins from "../routes/proxy-coins.route.ts";
 import coins from "../routes/working-coins.route.ts";
 import alerts from "../routes/alerts.route.ts";
-import proxyKline from "../routes/proxy-kline.ts";
-import anchoredVwap from "../routes/anchor-vwap.route.ts";
+import proxyKline from "../routes/proxy-kline.route.ts";
 import vwapAlerts from "../routes/vwap-alerts.route.ts";
 
 const { ORIGIN_I, ORIGIN_II, ORIGIN_III } = await load();
@@ -25,7 +24,6 @@ const initializeApp = async (): Promise<Application> => {
   app.use("/api", proxyKline);
   app.use("/api", coins);
   app.use("/api", alerts);
-  app.use("/api", anchoredVwap);
   app.use("/api", vwapAlerts);
 
   return app;
