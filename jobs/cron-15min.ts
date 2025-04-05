@@ -6,7 +6,7 @@ import { UnixToNamedTimeRu } from "../functions/utils/time-converter.ts";
 export function cron15minJob() {
   Deno.cron(
     "Check Kline against Alerts 15m",
-    { minute: { every: 1 } },
+    { minute: { every: 15 } },
     async () => {
       const timeNow = UnixToNamedTimeRu(new Date().getTime());
       console.log(`Job is running --> ${timeNow}`);

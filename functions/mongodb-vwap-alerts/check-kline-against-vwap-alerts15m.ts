@@ -27,8 +27,7 @@ export async function checkKlineAgainstVwapAlerts15m(
     const alerts = (
       await fetchVwapAlerts(AlertsCollection.WorkingAlerts)
     ).filter((a) => a.isActive);
-    //TODO
-    console.log("VwapAlerts fetched", alerts.length);
+
     if (!alerts || alerts.length === 0) {
       console.warn("No alerts found.");
       return;

@@ -8,6 +8,7 @@ import coins from "../routes/working-coins.route.ts";
 import alerts from "../routes/alerts.route.ts";
 import proxyKline from "../routes/proxy-kline.route.ts";
 import vwapAlerts from "../routes/vwap-alerts.route.ts";
+import general from "../routes/general.route.ts";
 
 const { ORIGIN_I, ORIGIN_II, ORIGIN_III } = await load();
 const allowedOrigins = [ORIGIN_I, ORIGIN_II, ORIGIN_III];
@@ -25,6 +26,7 @@ const initializeApp = async (): Promise<Application> => {
   app.use("/api", coins);
   app.use("/api", alerts);
   app.use("/api", vwapAlerts);
+  app.use("/api", general);
 
   return app;
 };

@@ -1,7 +1,5 @@
 import { Request, Response } from "npm:express@4.18.2";
-
 import { AlertsCollection } from "../models/alerts-collections.ts";
-
 import { fetchVwapAlerts } from "../functions/mongodb-vwap-alerts/fetch-vwap-alerts.ts";
 import { addVwapAlert } from "../functions/mongodb-vwap-alerts/add-vwap-alert.ts";
 import { updateVwapAlert } from "../functions/mongodb-vwap-alerts/update-vwap-alert.ts";

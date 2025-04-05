@@ -16,7 +16,6 @@ initializeCoinOperator()
   .then((app: Application) => {
     app.listen({ port: 80 }, "0.0.0.0", async () => {
       console.log("%cServer --> running...", DColors.green);
-      //cron15minJob();
-      //await AlertOperator.initialize();
+      cron15minJob();
     });
   });

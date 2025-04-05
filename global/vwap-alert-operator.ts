@@ -7,21 +7,25 @@ import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { VwapAlert } from "../models/vwap-alert.ts";
 import { DColors } from "../shared/colors.ts";
 import { AlertsCollection } from "../models/alerts-collections.ts";
+import { sendErrorReport } from "../functions/tg/notifications/send-error-report.ts";
 
 const env = await load();
 const MONGO_DB = env.MONGO_DB;
+
+if (!MONGO_DB) {
+  throw new Error(
+    "[DW-Levels] VwapAlertOperator --> MONGO_DB is not defined in the environment variables."
+  );
+}
 
 export class VwapAlertOperator {
   private static dbClient: MongoClient | null = null;
   private static db: Database | null = null;
   private static readonly dbName = "vwap-alerts";
 
-  // In-memory storage for collections
-  private static alertsData: Map<string, VwapAlert[]> = new Map([
-    ["working", []],
-    ["triggered", []],
-    ["archived", []],
-  ]);
+  private static alertsData: Map<string, VwapAlert[]> = new Map(
+    Object.values(AlertsCollection).map((key) => [key, []])
+  );
 
   public static async initialize() {
     if (this.dbClient) return; // Prevent re-initialization
@@ -38,6 +42,16 @@ export class VwapAlertOperator {
     } catch (error) {
       console.error("❌ Failed to initialize VwapAlertOperator:", error);
       this.dbClient = null; // Reset to allow retrying initialization
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:initialize()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
       throw error;
     }
   }
@@ -49,79 +63,177 @@ export class VwapAlertOperator {
         this.alertsData.set(collectionName, data);
       } catch (error) {
         console.error(`❌ Failed to load collection: ${collectionName}`, error);
+        const err = error instanceof Error ? error : new Error(String(error));
+        try {
+          await sendErrorReport(
+            env["PROJECT_NAME"],
+            "VwapAlertOperator:loadAllData()",
+            err.toString()
+          );
+        } catch (reportError) {
+          console.error("Failed to send error report:", reportError);
+        }
         this.alertsData.set(collectionName, []); // Set empty array to avoid undefined issues
       }
     }
   }
 
-  public static async updateVwapRepo() {
-    for (const collectionName of this.alertsData.keys()) {
-      try {
-        const data = await this.getAlertsFromDB(collectionName);
-        this.alertsData.set(collectionName, data);
-      } catch (error) {
-        console.error(`❌ Failed to load collection: ${collectionName}`, error);
-        this.alertsData.set(collectionName, []); // Set empty array to avoid undefined issues
+  public static async refreshRepo(collectionName: string): Promise<void> {
+    try {
+      if (!this.db) {
+        console.error(
+          "%c[DW-Levels] VwapAlertOperator --> Database not initialized. Call initialize() first.",
+          DColors.red
+        );
+        return;
       }
+
+      // Validate collection exists in our storage
+      if (!this.alertsData.has(collectionName)) {
+        console.error(
+          `%c[DW-Levels] VwapAlertOperator --> Invalid collection name: ${collectionName}`,
+          DColors.red
+        );
+        return;
+      }
+
+      // Fetch fresh data from MongoDB
+      const data = await this.getAlertsFromDB(collectionName);
+
+      // Update in-memory storage
+      this.alertsData.set(collectionName, []);
+      this.alertsData.set(collectionName, data);
+
+      console.log(
+        `%c[DW-Levels] VwapAlertOperator --> Refreshed collection: ${collectionName}`,
+        DColors.green
+      );
+    } catch (error) {
+      console.error(
+        `%c[DW-Levels] VwapAlertOperator --> Failed to refresh collection ${collectionName}:`,
+        DColors.red,
+        error
+      );
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:refreashRepo()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      this.alertsData.set(collectionName, []); // Fallback to empty array
     }
   }
 
   private static getCollection(collectionName: string): Collection<VwapAlert> {
-    if (!this.db) throw new Error("Database not initialized");
-    return this.db.collection<VwapAlert>(collectionName);
+    try {
+      if (!this.db) throw new Error("Database not initialized");
+      return this.db.collection<VwapAlert>(collectionName);
+    } catch (error) {
+      console.error(`Error getting collection "${collectionName}":`, error);
+      throw error;
+    }
   }
 
   private static async getAlertsFromDB(
     collectionName: string
   ): Promise<VwapAlert[]> {
-    const collection = this.getCollection(collectionName);
-    return await collection.find().toArray();
+    try {
+      const collection = this.getCollection(collectionName);
+      return await collection.find().toArray();
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:getAlertsFromDB()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      console.error(
+        `Error fetching alerts from collection "${collectionName}":`,
+        error
+      );
+      throw error;
+    }
   }
 
   // Read from in-memory storage
   public static getAlerts(collectionName: string): VwapAlert[] {
-    return this.alertsData.get(collectionName) || [];
+    try {
+      return this.alertsData.get(collectionName) || [];
+    } catch (error) {
+      console.error(
+        `Error retrieving alerts for collection "${collectionName}":`,
+        error
+      );
+      return [];
+    }
   }
 
   // Add VwapAlert to DB and update in-memory storage
   public static async addAlert(
     collectionName: string,
-    VwapAlert: VwapAlert
+    vwapAlert: VwapAlert
   ): Promise<void> {
-    const collection = this.getCollection(collectionName);
-    await collection.insertOne(VwapAlert);
-
-    // Update cache
-    this.alertsData.get(collectionName)?.push(VwapAlert);
+    try {
+      const collection = this.getCollection(collectionName);
+      await collection.insertOne(vwapAlert);
+      await this.refreshRepo(collectionName);
+    } catch (error) {
+      console.error(
+        `❌ Error adding alert to collection "${collectionName}":`,
+        error
+      );
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:addAlert()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      throw new Error(`Failed to add alert to collection "${collectionName}"`);
+    }
   }
 
   public static async addManyAlerts(
     collectionName: string,
     alerts: VwapAlert[]
   ): Promise<void> {
-    if (!alerts.length) return; // No alerts to add
-
-    const collection = this.getCollection(collectionName);
-
     try {
-      // Insert multiple alerts into the database
+      if (!alerts.length) return; // No alerts to add
+
+      const collection = this.getCollection(collectionName);
       await collection.insertMany(alerts);
-
-      // 🔹 Fetch fresh alerts from the database to ensure accurate data
-      const updatedAlerts = await this.getAlertsFromDB(collectionName);
-
-      // 🔹 Update in-memory storage with fresh data
-      this.alertsData.set(collectionName, updatedAlerts);
+      await this.refreshRepo(collectionName);
 
       console.log(
         `✅ Successfully added ${alerts.length} alerts to ${collectionName}`
       );
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:addManyAlerts()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
       console.error(
-        `❌ Error adding alerts to collection ${collectionName}:`,
+        `❌ Error adding alerts to collection "${collectionName}":`,
         error
       );
-      throw new Error(`Failed to add alerts to collection ${collectionName}`);
+      throw new Error(`Failed to add alerts to collection "${collectionName}"`);
     }
   }
 
@@ -130,19 +242,27 @@ export class VwapAlertOperator {
     collectionName: string,
     alertIds: string[]
   ): Promise<void> {
-    const collection = this.getCollection(collectionName);
-
     try {
+      const collection = this.getCollection(collectionName);
       await collection.deleteMany({ id: { $in: alertIds } });
-
-      this.updateVwapRepo();
+      await this.refreshRepo(collectionName);
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:removeAlerts()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
       console.error(
-        `Error removing alerts from collection ${collectionName}:`,
+        `Error removing alerts from collection "${collectionName}":`,
         error
       );
       throw new Error(
-        `Failed to remove alerts with given IDs from collection ${collectionName}`
+        `Failed to remove alerts with given IDs from collection "${collectionName}"`
       );
     }
   }
@@ -151,24 +271,27 @@ export class VwapAlertOperator {
     collectionName: string,
     alertId: string
   ): Promise<void> {
-    const collection = this.getCollection(collectionName);
-
     try {
+      const collection = this.getCollection(collectionName);
       await collection.deleteOne({ id: alertId });
-
-      // Update cache
-      const updatedAlerts =
-        this.alertsData
-          .get(collectionName)
-          ?.filter((vwapAlert) => vwapAlert.id != alertId) || [];
-      this.alertsData.set(collectionName, updatedAlerts);
+      await this.refreshRepo(collectionName);
     } catch (error) {
       console.error(
-        `Error removing alerts from collection ${collectionName}:`,
+        `Error removing alert from collection "${collectionName}":`,
         error
       );
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:removeAlert()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
       throw new Error(
-        `Failed to remove alerts with given IDs from collection ${collectionName}`
+        `Failed to remove alert with ID "${alertId}" from collection "${collectionName}"`
       );
     }
   }
@@ -177,8 +300,28 @@ export class VwapAlertOperator {
     symbol: string,
     collectionName: string
   ): Promise<VwapAlert[]> {
-    const collection = this.getCollection(collectionName);
-    return (await collection.find({ symbol }).toArray()) as VwapAlert[];
+    try {
+      const collection = this.getCollection(collectionName);
+      return (await collection.find({ symbol }).toArray()) as VwapAlert[];
+    } catch (error) {
+      console.error(
+        `Error fetching VWAP alerts for symbol "${symbol}" in collection "${collectionName}":`,
+        error
+      );
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:getVwapAlertsBySymbol()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      throw new Error(
+        `Failed to fetch VWAP alerts for symbol "${symbol}" in collection "${collectionName}"`
+      );
+    }
   }
 
   // Update VwapAlert in DB and in-memory storage
@@ -187,22 +330,29 @@ export class VwapAlertOperator {
     filter: Partial<VwapAlert>,
     updateData: Partial<VwapAlert>
   ): Promise<void> {
-    const collection = this.getCollection(collectionName);
-    const res = await collection.updateOne(filter, { $set: updateData });
-    console.log("MODIFIED RES: ", res);
-    // Update cache
-    const alerts = this.alertsData.get(collectionName) || [];
-    this.alertsData.set(
-      collectionName,
-      alerts.map((VwapAlert) =>
-        Object.keys(filter).every(
-          (key) =>
-            VwapAlert[key as keyof VwapAlert] === filter[key as keyof VwapAlert]
-        )
-          ? { ...VwapAlert, ...updateData }
-          : VwapAlert
-      )
-    );
+    try {
+      const collection = this.getCollection(collectionName);
+      await collection.updateOne(filter, { $set: updateData });
+      await this.refreshRepo(collectionName);
+    } catch (error) {
+      console.error(
+        `Error updating alert in collection "${collectionName}":`,
+        error
+      );
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:updateAlert()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      throw new Error(
+        `Failed to update alert in collection "${collectionName}"`
+      );
+    }
   }
 
   public static async removeBySymbolAndOpenTime(
@@ -222,14 +372,28 @@ export class VwapAlertOperator {
       );
 
       // Check if the operation was successful
-      await VwapAlertOperator.updateVwapRepo();
+      await this.refreshRepo(collectionName);
       return {
         deletedCount: result, // Accessing deletedCount from result
       };
     } catch (error) {
-      // Catch any errors that occur during the delete operation
-      console.error("Error deleting VWAP data:", error);
-      throw new Error(`Failed to delete VWAP data: ${error}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "VwapAlertOperator:removeBySymbolAndOpenTime()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      console.error(
+        `Error deleting VWAP data for symbol "${symbol}" in collection "${collectionName}":`,
+        error
+      );
+      throw new Error(
+        `Failed to delete VWAP data for symbol "${symbol}" in collection "${collectionName}"`
+      );
     }
   }
 }

@@ -23,4 +23,5 @@ router.put("/vwap-alerts/update/one", updateVwapAlertController);
 router.delete("/vwap-alerts/delete/many", deleteManyVwapController);
 router.delete("/vwap-alerts/delete/one", deleteOneVwapController);
 router.post("/vwap-alerts/move/many", moveManyVwapController);
+
 export default router;
