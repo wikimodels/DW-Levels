@@ -8,7 +8,9 @@ export async function fetchAlerts(
   collectionName: AlertsCollection
 ): Promise<Alert[]> {
   try {
-    return await AlertOperator.getAlerts(collectionName);
+    const res = await AlertOperator.getAlerts(collectionName);
+
+    return res;
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
