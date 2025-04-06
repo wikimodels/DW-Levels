@@ -55,11 +55,12 @@ export function getMatchingVwapAlerts(
 
       // Check if VWAP is within the latest kline's high and low price range
       if (vwap > lastKline.lowPrice && vwap < lastKline.highPrice) {
+        const activationTime = new Date().getTime() + 3 * 60 * 60 * 1000;
         // Create a triggered alert
         vwapAlert._id = "";
         vwapAlert.id = crypto.randomUUID();
-        vwapAlert.activationTime = new Date().getTime();
-        vwapAlert.activationTimeStr = UnixToTime(new Date().getTime());
+        vwapAlert.activationTime = activationTime;
+        vwapAlert.activationTimeStr = UnixToTime(activationTime);
         vwapAlert.high = lastKline.highPrice;
         vwapAlert.low = lastKline.lowPrice;
         vwapAlert.anchorPrice = vwap;

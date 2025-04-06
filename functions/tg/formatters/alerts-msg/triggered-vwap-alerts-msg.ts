@@ -3,7 +3,7 @@ import { UnixToNamedTimeRu } from "../../../utils/time-converter.ts";
 
 function formatVwapAlertItem(alert: VwapAlert, index: number): string {
   return `
-<b>${index + 1}. <a href="${alert.tvLink}">${alert.symbol}</a> ➡️ <i>${
+<b>${index + 1}.  ${alert.tvLink}">${alert.symbol}/<i>${
     alert.anchorTimeStr
   }</i></b>
 `;

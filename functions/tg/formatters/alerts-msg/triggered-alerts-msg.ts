@@ -4,9 +4,7 @@ import { UnixToNamedTimeRu } from "../../../utils/time-converter.ts";
 
 function formatAlertItem(alert: Alert, index: number): string {
   return `
-<b>${index + 1}. <a href="${alert.tvLink}">${alert.symbol}</a> ➡️ <i>${
-    alert.alertName
-  }</i></b>
+<b>${index + 1}. ${alert.tvLink}">${alert.symbol}/<i>${alert.alertName}</i></b>
 `;
 }
 
