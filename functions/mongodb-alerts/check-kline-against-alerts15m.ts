@@ -39,7 +39,10 @@ export async function checkKlineAgainstAlerts15m(
     }
     console.log(matchingAlerts);
     await addManyAlerts(AlertsCollection.TriggeredAlerts, matchingAlerts);
-    await sendTriggeredAlertsReport(projectName, matchingAlerts);
+
+    setTimeout(async () => {
+      await sendTriggeredAlertsReport(projectName, matchingAlerts);
+    }, 10 * 1000);
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
