@@ -19,3 +19,4 @@ initializeCoinOperator()
       cron15minJob();
     });
   });
+  //TODO: fix time for line alerts (add 3 hours), check selection logic and saving logic

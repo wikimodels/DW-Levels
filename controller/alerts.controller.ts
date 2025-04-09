@@ -7,6 +7,8 @@ import { updateAlert } from "../functions/mongodb-alerts/update-alert.ts";
 import { deleteMany } from "../functions/mongodb-alerts/delete-alerts.ts";
 import { moveMany } from "../functions/mongodb-alerts/move-many-alerts.ts";
 import { fetchAlerts } from "../functions/mongodb-alerts/fetch-alerts.ts";
+import { AlertBase } from "../models/alert-base.ts";
+import { addAlertsBatch } from "../functions/mongodb-alerts/add-alerts-batch.ts";
 
 export async function getAlertsController(req: Request, res: Response) {
   try {
@@ -71,6 +73,46 @@ export const addAlertController = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+export const addAlertsBatchController = async (req: Request, res: Response) => {
+  try {
+    const collectionName = req.query.collectionName as AlertsCollection;
+    const alertBases: AlertBase[] = req.body; // Extract alert from request body
+
+    // ✅ Check if collectionName is provided
+    if (!collectionName) {
+      return res
+        .status(400)
+        .json({ error: "Missing collectionName parameter" });
+    }
+
+    // ✅ Validate collectionName against the enum values
+    if (
+      !Object.values(AlertsCollection).includes(
+        collectionName as AlertsCollection
+      )
+    ) {
+      return res.status(400).json({ error: "Invalid collection name" });
+    }
+
+    // ✅ Validate alert object
+    if (!alertBases) {
+      return res.status(400).json({ error: "Invalid alert data" });
+    }
+
+    // ✅ Call the service function to add alert
+    const success = await addAlertsBatch(alertBases, collectionName);
+
+    if (success) {
+      return res.status(201).json(success);
+    } else {
+      return res.status(500).json({ error: "Failed to add alerts." });
+    }
+  } catch (error) {
+    console.error("❌ Error in addAlertsBatchController:", error);
     return res.status(500).json({ error: "Internal server error." });
   }
 };

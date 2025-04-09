@@ -8,6 +8,8 @@ import { Alert } from "../models/alert.ts";
 import { DColors } from "../shared/colors.ts";
 import { AlertsCollection } from "../models/alerts-collections.ts";
 import { sendErrorReport } from "../functions/tg/notifications/send-error-report.ts";
+import { AlertBase } from "../models/alert-base.ts";
+import { Coin } from "../models/coin.ts";
 
 const env = await load();
 const MONGO_DB = env.MONGO_DB;
@@ -299,6 +301,137 @@ export class AlertOperator {
       }
       throw new Error(
         `Failed to update alert in collection "${collectionName}"`
+      );
+    }
+  }
+
+  public static async findDuplicateAlertNames(
+    alertsBase: AlertBase[],
+    collectionName: AlertsCollection
+  ): Promise<string[]> {
+    try {
+      if (!this.db) {
+        console.error(
+          "%c[DW-Levels] AlertOperator --> Database not initialized. Call initialize() first.",
+          DColors.red
+        );
+        return [];
+      }
+
+      // Extract alert names from the input array
+      const alertNames = alertsBase.map((alert) => alert.alertName);
+
+      // Get the 'working' collection
+      const workingCollection = this.getCollection(collectionName);
+
+      // Find alerts in the 'working' collection with matching names
+      const matchingAlerts = await workingCollection
+        .find({ alertName: { $in: alertNames } })
+        .toArray();
+
+      console.log(
+        `%c[DW-Levels] AlertOperator --> Found ${matchingAlerts.length} matching alerts in 'working' collection.`,
+        DColors.green
+      );
+      const matchingNames = matchingAlerts.map((alert) => alert.alertName);
+      return matchingNames;
+    } catch (error) {
+      console.error(
+        "❌ Error finding matching alerts in 'working' collection:",
+        error
+      );
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          env["PROJECT_NAME"],
+          "AlertOperator:findMatchingAlertsInWorking()",
+          err.toString()
+        );
+      } catch (reportError) {
+        console.error("Failed to send error report:", reportError);
+      }
+      throw new Error("Failed to find matching alerts in 'working' collection");
+    }
+  }
+
+  public static createAlerts(alertBases: AlertBase[], coins: Coin[]): Alert[] {
+    try {
+      // Validate inputs
+      if (!Array.isArray(alertBases)) {
+        throw new Error("Invalid input: 'alertBases' must be an array.");
+      }
+      if (!Array.isArray(coins)) {
+        throw new Error("Invalid input: 'coins' must be an array.");
+      }
+
+      const readyAlerts: Alert[] = [];
+
+      for (const base of alertBases) {
+        try {
+          // Find the coin matching the symbol
+          const coin = coins.find((coin) => coin.symbol === base.symbol);
+
+          if (coin) {
+            // Create a new alert object if the coin is found
+            const alert: Alert = {
+              action: base.action,
+              alertName: base.alertName,
+              isActive: true,
+              symbol: base.symbol,
+              status: "",
+              id: crypto.randomUUID(),
+              tvScreensUrls: base.tvScreensUrls,
+              price: base.price,
+              creationTime: new Date().getTime(),
+              imageUrl: coin.imageUrl,
+              exchanges: coin.exchanges,
+              category: coin.category,
+              description: "Yet nothing to say",
+            };
+
+            // Add the alert to the readyAlerts array
+            readyAlerts.push(alert);
+          } else {
+            console.log(`Coin with symbol ${base.symbol} not found.`);
+          }
+        } catch (error) {
+          // Handle errors for individual alerts
+          console.error(
+            `Error processing alert with symbol ${base.symbol}:`,
+            error
+          );
+        }
+      }
+
+      return readyAlerts;
+    } catch (error) {
+      // Handle top-level errors
+      console.error("Error in createAlerts method:", error);
+      throw new Error(
+        "[DW-Levels]:createAlerts(): Failed to create alerts due to an unexpected error."
+      );
+    }
+  }
+
+  public static findCorruptedSymbols(
+    alerts: AlertBase[],
+    coins: Coin[]
+  ): string[] {
+    try {
+      // Extract all coin symbols from the coins array
+      const coinSymbols = new Set(coins.map((coin) => coin.symbol));
+
+      // Find symbols in alerts that are not present in the coins array
+      const corrupted = alerts
+        .filter((alert) => !coinSymbols.has(alert.symbol)) // Filter alerts with missing symbols
+        .map((alert) => alert.symbol); // Extract the symbol from the filtered alerts
+
+      return corrupted;
+    } catch (error) {
+      // Handle unexpected errors
+      console.error("Error finding corrupted symbols:", error);
+      throw new Error(
+        "[DW-Levels]:findCorruptedSymbols(): Failed to find corrupted symbols due to an unexpected error."
       );
     }
   }

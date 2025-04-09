@@ -19,6 +19,4 @@ export interface Alert {
   cgLink?: string;
   exchanges?: string[];
   imageUrl?: string;
-  anchorTime?: number;
-  anchorTimeStr?: string;
 }

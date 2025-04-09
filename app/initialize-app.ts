@@ -10,8 +10,8 @@ import proxyKline from "../routes/proxy-kline.route.ts";
 import vwapAlerts from "../routes/vwap-alerts.route.ts";
 import general from "../routes/general.route.ts";
 
-const { ORIGIN_I, ORIGIN_II, ORIGIN_III } = await load();
-const allowedOrigins = [ORIGIN_I, ORIGIN_II, ORIGIN_III];
+const { ORIGIN_I, ORIGIN_II, ORIGIN_III, ORIGIN_IV } = await load();
+const allowedOrigins = [ORIGIN_I, ORIGIN_II, ORIGIN_III, ORIGIN_IV];
 
 const initializeApp = async (): Promise<Application> => {
   const app = express();
