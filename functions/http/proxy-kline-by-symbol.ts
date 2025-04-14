@@ -1,9 +1,9 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { KlineData } from "../../models/kline-data.ts";
 import { TF } from "../../shared/timeframes.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
-const env = await load();
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function fetchProxyKlineBySymbol(
   symbol: string,
@@ -15,8 +15,9 @@ export async function fetchProxyKlineBySymbol(
   limit: number;
   data: KlineData[];
 }> {
+  const config = ConfigOperator.getConfig();
   try {
-    const baseUrl = env["KLINE_BY_SYMBOL"];
+    const baseUrl = config.klineApis.symbol;
     if (!baseUrl) {
       throw new Error("KLINE_BY_SYMBOL env variable is not defined");
     }
@@ -49,15 +50,15 @@ export async function fetchProxyKlineBySymbol(
 
     try {
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "fetchProxyKlineBySymbol",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
 
-    console.error("Failed to fetch Kline data:", error);
+    logger.error("Failed to fetch Kline data:", error);
     return { symbol, timeframe, limit, data: [] }; // Ensure return type consistency
   }
 }

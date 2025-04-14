@@ -12,12 +12,12 @@ export async function addWorkingCoin(coin: Coin): Promise<boolean> {
         `✅ Coin added successfully to collection: ${collectionName}`
       );
     } else {
-      console.error(`❌ Failed to add coin to collection: ${collectionName}`);
+      logger.error(`❌ Failed to add coin to collection: ${collectionName}`);
     }
 
     return result.ok;
   } catch (error) {
-    console.error(`❌ Error adding alert to ${collectionName}:`, error);
+    logger.error(`❌ Error adding alert to ${collectionName}:`, error);
     return false;
   } finally {
     kv.close();

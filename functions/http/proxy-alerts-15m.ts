@@ -1,15 +1,15 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { transformKlineResponse } from "../utils/transform-kline-response.ts";
 import { KlineData } from "../../models/kline-data.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
-
-const env = await load();
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function fetchProxyKline15m(): Promise<
   Record<string, KlineData[]>
 > {
+  const config = ConfigOperator.getConfig();
   try {
-    const url = env["KLINE_15M"];
+    const url = config.klineApis.m15;
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -29,15 +29,15 @@ export async function fetchProxyKline15m(): Promise<
 
     try {
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "fetchProxyKline15m",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
 
-    console.error("Failed to fetch Kline data:", error);
+    logger.error("Failed to fetch Kline data:", error);
     return {}; // Return null so the caller knows it failed
   }
 }

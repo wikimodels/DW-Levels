@@ -1,10 +1,14 @@
 {
   "version": "4",
   "specifiers": {
+    "npm:@dopplerhq/node-sdk@*": "1.3.0",
     "npm:cors@*": "2.8.5",
     "npm:express@4.18.2": "4.18.2"
   },
   "npm": {
+    "@dopplerhq/node-sdk@1.3.0": {
+      "integrity": "sha512-CTi9xqdcauZm3wiQKGdtMzXK8SdvmMV4WTLrWGmTwY7TDBa5dD8YutAorHaVpzv1ojwtcvJBG8xXajFAivow5w=="
+    },
     "accepts@1.3.8": {
       "integrity": "sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==",
       "dependencies": [
@@ -374,7 +378,8 @@
     }
   },
   "redirects": {
-    "https://deno.land/std/http/server.ts": "https://deno.land/std@0.224.0/http/server.ts"
+    "https://deno.land/std/http/server.ts": "https://deno.land/std@0.224.0/http/server.ts",
+    "https://deno.land/x/telegram_bot_api@0.4.0/": "https://deno.land/x/telegram_bot_api@0.4.0"
   },
   "remote": {
     "https://deno.land/std@0.154.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",

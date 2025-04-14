@@ -15,7 +15,7 @@ export async function fetchAlerts(
 
     return alerts;
   } catch (error) {
-    console.error(
+    logger.error(
       `❌ Failed to fetch active alerts from ${collectionName}:`,
       error
     );

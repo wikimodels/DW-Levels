@@ -1,22 +1,34 @@
-import { Application } from "npm:express@4.18.2";
+import { VwapAlertOperator } from "./global/vwap-alert-operator.ts";
+import { TelegramBotOperator } from "./global/tg-bot-operator.ts";
 import initializeApp from "./app/initialize-app.ts";
-import { DColors } from "./shared/colors.ts";
+import { CoinOperator } from "./global/coin-operator.ts";
+import { ConfigOperator } from "./global/config-operator.ts";
+import { logger } from "./global/logger.ts";
 import { cron15minJob } from "./jobs/cron-15min.ts";
+import { DColors } from "./shared/colors.ts";
+import { LineAlertOperator } from "./global/line-alert-operator.ts";
 
-import initializeCoinOperator from "./app/initialize-coin-operator.ts";
-import { AlertOperator } from "./global/alert-operator.ts";
+async function initializeApplication() {
+  try {
+    // Step 1: Initialize ConfigOperator first
+    await ConfigOperator.initialize();
+    const config = ConfigOperator.getConfig();
 
-import initializeVwapAlertOperator from "./app/initialize-vwap-alert-operator.ts";
-import initializeAlertOperator from "./app/initialize-alert-operator.ts";
+    // Step 2: Initialize other operators in sequence
+    await CoinOperator.initialize(config);
+    await TelegramBotOperator.initialize(config);
 
-initializeCoinOperator()
-  .then(() => initializeVwapAlertOperator())
-  .then(() => initializeAlertOperator())
-  .then(() => initializeApp())
-  .then((app: Application) => {
-    app.listen({ port: 80 }, "0.0.0.0", async () => {
-      console.log("%cServer --> running...", DColors.green);
+    await VwapAlertOperator.initialize(config);
+    await LineAlertOperator.initialize(config); // Step 3: Start the application
+    const app = await initializeApp(config);
+    app.listen({ port: 80 }, "0.0.0.0", () => {
+      logger.success("Server --> started...", DColors.green);
       cron15minJob();
     });
-  });
-  //TODO: fix time for line alerts (add 3 hours), check selection logic and saving logic
+  } catch (error) {
+    logger.error("Application initialization failed:", error);
+    Deno.exit(1); // Exit gracefully if initialization fails
+  }
+}
+
+initializeApplication();

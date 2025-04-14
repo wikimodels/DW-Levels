@@ -1,15 +1,15 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
-import { CoinOperator } from "../../global/coin-operator.ts";
 import { Coin } from "../../models/coin.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { logger } from "../../global/logger.ts";
+import { CoinOperator } from "../../global/coin-operator.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function fetchWorkingCoins(): Promise<Coin[]> {
+  const config = ConfigOperator.getConfig();
   try {
-    const coins = await CoinOperator.getCoins();
+    const coins = CoinOperator.getCoins();
     if (!Array.isArray(coins)) {
-      console.error(
-        `[CoinOperator] Unexpected data format: Expected an array.`
-      );
+      logger.error(`[CoinOperator] Unexpected data format: Expected an array.`);
       return [];
     }
 
@@ -18,16 +18,15 @@ export async function fetchWorkingCoins(): Promise<Coin[]> {
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "fetchWorkingCoins",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(`[CoinOperator] Failed to fetch coins`, {
+    logger.error(`[CoinOperator] Failed to fetch coins`, {
       error: err.message,
       stack: err.stack,
     });

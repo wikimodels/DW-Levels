@@ -1,12 +1,12 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { Coin } from "../../models/coin.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
-
-const env = await load();
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function refreshProxyCoins(): Promise<Coin[]> {
+  const config = ConfigOperator.getConfig();
   try {
-    const url = env["COINS_STORE"];
+    const url = config.coinsStoreApi;
 
     if (!url) {
       throw new Error("COINS environment variable is missing.");
@@ -27,14 +27,14 @@ export async function refreshProxyCoins(): Promise<Coin[]> {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "refreshProxyCoins",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error("Failed to fetch Kline data:", error);
+    logger.error("Failed to fetch Kline data:", error);
     return [];
   }
 }

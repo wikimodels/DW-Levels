@@ -7,15 +7,18 @@ import { addWorkingCoin } from "../functions/mongodb-working-coins/add-working-c
 import { deleteWorkingCoins } from "../functions/mongodb-working-coins/delete-working-coins.ts";
 import { updateWorkingCoin } from "../functions/mongodb-working-coins/update-working-coin.ts";
 import { addManyWorkingCoins } from "../functions/mongodb-working-coins/add-many-working-coins.ts";
+import { logger } from "../global/logger.ts";
 
-export async function getWorkingCoinsController(req: Request, res: Response) {
+export async function getWorkingCoinsController(_req: Request, res: Response) {
   try {
     const coins = await fetchWorkingCoins();
 
     return res.status(200).json(coins);
   } catch (error) {
-    console.error("❌ Error fetching alerts:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    logger.error("❌ Error fetching alerts:", error);
+    return res
+      .status(500)
+      .json({ error: "Error in getWorkingCoinsController" });
   }
 }
 
@@ -30,8 +33,8 @@ export const addWorkingCoinController = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to add alert." });
     }
   } catch (error) {
-    console.error("❌ Error in addAlertController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Error in addWorkingCoinController" });
   }
 };
 
@@ -49,8 +52,10 @@ export const addWorkingCoinsController = async (
       return res.status(500).json({ error: "Failed to add alert." });
     }
   } catch (error) {
-    console.error("❌ Error in addWorkingCoinsController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addWorkingCoinsController:", error);
+    return res
+      .status(500)
+      .json({ error: "Error in addWorkingCoinsController" });
   }
 };
 
@@ -72,8 +77,10 @@ export const deleteWorkingCoinsController = async (
         .json({ message: "Some alerts might not have been deleted" });
     }
   } catch (error) {
-    console.error("❌ Error in deleteManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in deleteManyController:", error);
+    return res
+      .status(500)
+      .json({ error: "Error in deleteWorkingCoinsController" });
   }
 };
 
@@ -106,7 +113,9 @@ export const updateWorkingCoinController = async (
       return res.status(500).json({ error: "Failed to update coin." });
     }
   } catch (error) {
-    console.error("❌ Error in updateWorkingCoinController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in updateWorkingCoinController:", error);
+    return res
+      .status(500)
+      .json({ error: "Error in updateWorkingCoinController" });
   }
 };

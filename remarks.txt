@@ -3,15 +3,16 @@ denon run --allow-net --allow-import --allow-read --allow-env --allow-write --un
 Worknig with this package
 https://www.npmjs.com/package/binance
 
+doppler run -- deployctl deploy --project dw-levels --regions=arn --allow-env --entrypoint server.ts
  
 import _ from "https://cdn.skypack.dev/lodash";
 
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
-const env = await load();
+const config = await ConfigOperator.getConfig();;;
 
  mongosh "mongodb+srv://cluster0.wgp2hmv.mongodb.net/" --apiVersion 1 --username youngwikimodels
-
-Current time in POSTMAN
+C:\Users\Vitali\.deno\deployctl
+Current time in POSTMANs
 {
   "time" : {{$timestamp}}
 }
@@ -49,3 +50,6 @@ lhr	London, UK
 gru	São Paulo, Brazil
 hnd	Tokyo, Japan
 syd	Sydney, Australia
+
+=== RENEW PATH FOR POWERSHELL ======
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")

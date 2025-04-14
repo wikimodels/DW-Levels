@@ -16,12 +16,12 @@ export async function addAlert(
         `✅ Alert added successfully to collection: ${collectionName}`
       );
     } else {
-      console.error(`❌ Failed to add alert to collection: ${collectionName}`);
+      logger.error(`❌ Failed to add alert to collection: ${collectionName}`);
     }
 
     return result.ok;
   } catch (error) {
-    console.error(`❌ Error adding alert to ${collectionName}:`, error);
+    logger.error(`❌ Error adding alert to ${collectionName}:`, error);
     return false;
   } finally {
     kv.close();

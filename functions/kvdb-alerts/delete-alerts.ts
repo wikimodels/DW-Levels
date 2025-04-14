@@ -27,7 +27,7 @@ export async function deleteMany(
 
     return allDeleted;
   } catch (error) {
-    console.error(`❌ Error deleting alerts from ${collectionName}:`, error);
+    logger.error(`❌ Error deleting alerts from ${collectionName}:`, error);
     return false;
   } finally {
     kv.close();

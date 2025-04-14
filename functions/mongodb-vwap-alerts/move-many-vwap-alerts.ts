@@ -1,6 +1,8 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { DColors } from "../../shared/colors.ts";
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function moveManyVwap(
   sourceCollection: string,
@@ -9,6 +11,7 @@ export async function moveManyVwap(
 ): Promise<{ insertCount: number; deleteCount: number }> {
   let insertCount = 0;
   let deleteCount = 0;
+  const config = ConfigOperator.getConfig();
 
   try {
     const sourceAlerts = await VwapAlertOperator.getAlerts(sourceCollection);
@@ -17,7 +20,7 @@ export async function moveManyVwap(
     const alertsToMove = sourceAlerts.filter((alert) => ids.includes(alert.id));
 
     if (alertsToMove.length === 0) {
-      console.log(`⚠️ No matching alerts found for moving.`);
+      logger.info(`⚠️ No matching alerts found for moving.`, DColors.yellow);
       return { insertCount, deleteCount };
     }
 
@@ -32,24 +35,20 @@ export async function moveManyVwap(
     insertCount = alertsToMove.length;
     deleteCount = alertsToMove.length;
 
-    console.log(
-      `✅ Moved ${insertCount} alerts from ${sourceCollection} to ${targetCollection}`
+    logger.success(
+      `✅ Moved ${insertCount} alerts from ${sourceCollection} to ${targetCollection}`,
+      DColors.green
     );
 
     return { insertCount, deleteCount };
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
-      await sendErrorReport(
-        env["PROJECT_NAME"],
-        "moveManyVwap",
-        err.toString()
-      );
+      await sendErrorReport(config.projectName, "moveManyVwap", err.toString());
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(`Failed to move alerts between collections`, {
+    logger.error(`Failed to move alerts between collections`, {
       error: err.message,
       sourceCollection,
       targetCollection,

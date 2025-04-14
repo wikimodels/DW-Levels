@@ -9,6 +9,9 @@ import { moveMany } from "../functions/mongodb-alerts/move-many-alerts.ts";
 import { fetchAlerts } from "../functions/mongodb-alerts/fetch-alerts.ts";
 import { AlertBase } from "../models/alert-base.ts";
 import { addAlertsBatch } from "../functions/mongodb-alerts/add-alerts-batch.ts";
+import { fetchAlertsBySymbol } from "../functions/mongodb-alerts/fetch-alerts-by-symbol.ts";
+import { deleteBySymbolAndPrice } from "../functions/mongodb-alerts/delete-by-symbol-and-price.ts";
+import { logger } from "../global/logger.ts";
 
 export async function getAlertsController(req: Request, res: Response) {
   try {
@@ -32,8 +35,8 @@ export async function getAlertsController(req: Request, res: Response) {
 
     return res.status(200).json(alerts);
   } catch (error) {
-    console.error("❌ Error fetching alerts:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    logger.error("❌ Error fetching alerts:", error);
+    return res.status(500).json({ error: "Error getAlertsController" });
   }
 }
 
@@ -72,8 +75,8 @@ export const addAlertController = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to add alert." });
     }
   } catch (error) {
-    console.error("❌ Error in addAlertController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Error in addAlertController" });
   }
 };
 
@@ -112,8 +115,8 @@ export const addAlertsBatchController = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to add alerts." });
     }
   } catch (error) {
-    console.error("❌ Error in addAlertsBatchController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addAlertsBatchController:", error);
+    return res.status(500).json({ error: "Error in addAlertsBatchController" });
   }
 };
 
@@ -150,8 +153,8 @@ export const updateAlertController = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to add alert." });
     }
   } catch (error) {
-    console.error("❌ Error in addAlertController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Error in updateAlertController" });
   }
 };
 
@@ -193,8 +196,8 @@ export const deleteManyController = async (req: Request, res: Response) => {
         .json({ message: "Some alerts might not have been deleted" });
     }
   } catch (error) {
-    console.error("❌ Error in deleteManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in deleteManyController:", error);
+    return res.status(500).json({ error: "Error in deleteManyController" });
   }
 };
 
@@ -241,7 +244,95 @@ export const moveManyController = async (req: Request, res: Response) => {
       deleteCount: result.deleteCount,
     });
   } catch (error) {
-    console.error("❌ Error in moveManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in moveManyController:", error);
+    return res.status(500).json({ error: "Error in moveManyController" });
+  }
+};
+
+export const getAlertsBySymbolController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const symbol = req.query.symbol as string; // Get symbol from query parameter
+    const collectionName = req.query.collectionName as string; // Get symbol from query parameter
+
+    // Check if symbol is provided
+    if (!symbol) {
+      return res
+        .status(400)
+        .json({ error: "Symbol query parameter is required" });
+    }
+
+    if (!collectionName) {
+      return res
+        .status(400)
+        .json({ error: "CollectionName query parameter is required" });
+    }
+
+    const data = await fetchAlertsBySymbol(
+      symbol,
+      collectionName as AlertsCollection
+    );
+    res.status(200).json(data);
+  } catch (error) {
+    logger.error("Error fetching Alerts By Symbol", error);
+    res
+      .status(500)
+      .json({ error: "Error in getAlertsBySymbolController", details: error });
+  }
+};
+
+export const deleteBySymbolAndPriceController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { symbol } = req.query;
+    const { collectionName } = req.query;
+    const { price } = req.query;
+
+    // ✅ Validate parameters
+    if (!symbol || typeof symbol !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Invalid or missing symbol parameter" });
+    }
+
+    // ✅ Validate parameters
+    if (!price) {
+      return res
+        .status(400)
+        .json({ error: "Invalid or missing price parameter" });
+    }
+
+    // ✅ Check if collectionName is a valid enum value
+    if (
+      !Object.values(AlertsCollection).includes(
+        collectionName as AlertsCollection
+      )
+    ) {
+      return res.status(400).json({ error: "Invalid collection name" });
+    }
+
+    // ✅ Call deleteMany function
+    const success = await deleteBySymbolAndPrice(
+      symbol,
+      collectionName as AlertsCollection,
+      price
+    );
+
+    if (success) {
+      return res.status(200).json({ message: "Alerts deleted successfully!" });
+    } else {
+      return res
+        .status(207)
+        .json({ message: "Some alerts might not have been deleted" });
+    }
+  } catch (error) {
+    logger.error("❌ Error in deleteManyController:", error);
+    return res
+      .status(500)
+      .json({ error: "Erorr in deleteBySymbolAndPriceController" });
   }
 };

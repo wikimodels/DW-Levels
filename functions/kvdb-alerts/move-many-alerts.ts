@@ -35,14 +35,19 @@ export async function moveMany(
     if (result.ok) {
       insertCount = movedAlerts.length;
       deleteCount = movedAlerts.length;
-      console.log(`✅ Moved ${insertCount} alerts from ${sourceCollection} to ${targetCollection}`);
+      console.log(
+        `✅ Moved ${insertCount} alerts from ${sourceCollection} to ${targetCollection}`
+      );
     } else {
-      console.error("❌ Failed to move some alerts");
+      logger.error("❌ Failed to move some alerts");
     }
 
     return { insertCount, deleteCount };
   } catch (error) {
-    console.error(`❌ Error moving alerts from ${sourceCollection} to ${targetCollection}:`, error);
+    logger.error(
+      `❌ Error moving alerts from ${sourceCollection} to ${targetCollection}:`,
+      error
+    );
     return { insertCount, deleteCount };
   } finally {
     kv.close();

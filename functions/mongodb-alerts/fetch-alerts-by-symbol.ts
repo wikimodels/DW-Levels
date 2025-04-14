@@ -1,22 +1,23 @@
-import { ConfigOperator } from "../../global/config-operator.ts";
-import { logger } from "../../global/logger.ts";
-import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
-import { VwapAlert } from "../../models/vwap-alert.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { LineAlertOperator } from "../../global/line-alert-operator.ts";
+import { Alert } from "../../models/alert.ts";
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
-export async function fetchVwapAlerts(
+export async function fetchAlertsBySymbol(
+  symbol: string,
   collectionName: AlertsCollection
-): Promise<VwapAlert[]> {
+): Promise<Alert[]> {
   const config = ConfigOperator.getConfig();
   try {
-    return await VwapAlertOperator.getAlerts(collectionName);
+    return await LineAlertOperator.getAlertsBySymbol(symbol, collectionName);
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
       await sendErrorReport(
         config.projectName,
-        "fetchVwapAlerts",
+        "fetchAlertsBySymbol",
         err.toString()
       );
     } catch (reportError) {

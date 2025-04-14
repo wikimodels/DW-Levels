@@ -1,33 +1,39 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { CoinOperator } from "../../global/coin-operator.ts";
 import { Coin } from "../../models/coin.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { logger } from "../../global/logger.ts";
+import { DColors } from "../../shared/colors.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function addWorkingCoin(coin: Coin): Promise<boolean> {
+  const config = ConfigOperator.getConfig();
+
   try {
     if (!coin || !coin.symbol) {
-      console.error(
+      logger.error(
         `[CoinOperator] Invalid coin data: Missing required properties.`
       );
       return false;
     }
 
     await CoinOperator.addCoin(coin);
-    console.log(`[CoinOperator] Successfully added coin: ${coin.symbol}`);
+    logger.success(
+      `[CoinOperator] Successfully added coin: ${coin.symbol}`,
+      DColors.green
+    );
     return true;
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "addWorkingCoin",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(`[CoinOperator] Failed to add coin ${coin.symbol}`, {
+    logger.error(`[CoinOperator] Failed to add coin ${coin.symbol}`, {
       error: err.message,
       coin: coin.symbol,
       stack: err.stack,

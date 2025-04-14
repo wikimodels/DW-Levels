@@ -2,39 +2,34 @@
 
 import { fetchProxyCoins } from "../functions/http/proxy-coins.ts";
 import { refreshProxyCoins } from "../functions/http/refresh-proxy-coins.ts";
+import { logger } from "../global/logger.ts";
 
-export const ProxyCoins = async (_req: any, res: any) => {
+export const proxyCoinsController = async (_req: any, res: any) => {
   try {
     const coins = await fetchProxyCoins();
     res.send(coins);
   } catch (error) {
-    console.error("Error retrieving get1hRollingVwapData:", error);
-    res
-      .status(500)
-      .send("An error occurred while getting get1hRollingVwapData.");
+    logger.error("Error retrieving get1hRollingVwapData:", error);
+    res.status(500).send("Error in proxyCoinsController");
   }
 };
 
-export const getProxyCoins = async (_req: any, res: any) => {
+export const getProxyCoinsController = async (_req: any, res: any) => {
   try {
     const coins = await fetchProxyCoins();
     res.send(coins);
   } catch (error) {
-    console.error("Error retrieving get1hRollingVwapData:", error);
-    res
-      .status(500)
-      .send("An error occurred while getting get1hRollingVwapData.");
+    logger.error("Error retrieving get1hRollingVwapData:", error);
+    res.status(500).send("Error in getProxyCoinsController");
   }
 };
 
-export const updateProxyCoins = async (_req: any, res: any) => {
+export const updateProxyCoinsController = async (_req: any, res: any) => {
   try {
     const coins = await refreshProxyCoins();
     res.send(coins);
   } catch (error) {
-    console.error("Error retrieving get1hRollingVwapData:", error);
-    res
-      .status(500)
-      .send("An error occurred while getting get1hRollingVwapData.");
+    logger.error("Error retrieving get1hRollingVwapData:", error);
+    res.status(500).send("Error in updateProxyCoinsController");
   }
 };

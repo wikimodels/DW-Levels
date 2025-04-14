@@ -1,32 +1,35 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { DColors } from "../../shared/colors.ts";
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function deleteManyVwap(
   collectionName: AlertsCollection,
   alertIds: string[]
 ): Promise<boolean> {
+  const config = ConfigOperator.getConfig();
   try {
-    // Attempt to remove the alerts using AlertOperator
+    // Attempt to remove the alerts using LineAlertOperator
     await VwapAlertOperator.removeAlerts(collectionName, alertIds);
-    console.log(
-      `✅ Successfully deleted ${alertIds.length} alerts from ${collectionName}`
+    logger.success(
+      `✅ Successfully deleted ${alertIds.length} alerts from ${collectionName}`,
+      DColors.green
     );
     return true; // Return true on success
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "deleteManyVwap",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(
+    logger.error(
       `Failed to delete ${alertIds.length} alerts from ${collectionName}`,
       {
         error: err.message,

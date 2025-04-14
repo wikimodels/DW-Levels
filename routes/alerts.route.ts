@@ -7,6 +7,8 @@ import {
   deleteManyController,
   moveManyController,
   addAlertsBatchController,
+  deleteBySymbolAndPriceController,
+  getAlertsBySymbolController,
 } from "../controller/alerts.controller.ts";
 
 const router = express.Router();
@@ -18,4 +20,6 @@ router.post("/alerts/add/many", addAlertsBatchController);
 router.put("/alerts/update/one", updateAlertController);
 router.delete("/alerts/delete/many", deleteManyController);
 router.post("/alerts/move/many", moveManyController);
+router.delete("/alerts/delete/symbol/price", deleteBySymbolAndPriceController);
+router.get("/alerts/symbol", getAlertsBySymbolController);
 export default router;

@@ -1,5 +1,3 @@
-// deno-lint-ignore-file require-await
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import express, { Application } from "npm:express@4.18.2";
 import cors from "npm:cors";
 
@@ -9,16 +7,19 @@ import alerts from "../routes/alerts.route.ts";
 import proxyKline from "../routes/proxy-kline.route.ts";
 import vwapAlerts from "../routes/vwap-alerts.route.ts";
 import general from "../routes/general.route.ts";
+import { Config } from "../models/config.ts";
 
-const { ORIGIN_I, ORIGIN_II, ORIGIN_III, ORIGIN_IV } = await load();
-const allowedOrigins = [ORIGIN_I, ORIGIN_II, ORIGIN_III, ORIGIN_IV];
+const initializeApp = (config: Config): Promise<Application> => {
+  const allowedOrigins = config.origins;
 
-const initializeApp = async (): Promise<Application> => {
+  if (!Array.isArray(allowedOrigins) || allowedOrigins.length === 0) {
+    throw new Error("No valid origins found in the configuration");
+  }
   const app = express();
   app.use(express.json());
   app.use(
     cors({
-      origin: allowedOrigins,
+      origin: [...allowedOrigins.filter(Boolean)], // Ensure no falsy values
     })
   );
   app.use("/api", proxyCoins);

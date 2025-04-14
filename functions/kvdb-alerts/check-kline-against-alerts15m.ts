@@ -1,4 +1,4 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
+import { loadConfig } from "../../config.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
 import { fetchProxyKline15m } from "../http/proxy-alerts-15m.ts";
 import { sendTriggeredAlertsReport } from "../tg/notifications/send-triggered-alerts-report.ts";
@@ -7,8 +7,8 @@ import { getMatchingAlerts } from "./get-matching-alerts.ts";
 
 export async function checkKlineAgainstAlerts15m() {
   try {
-    const env = await load();
-    const projectName = env["PROJECT_NAME"];
+    const config = await ConfigOperator.getConfig();
+    const projectName = config.projectName;
 
     if (!projectName) {
       throw new Error("Missing environment variable: PROJECT_NAME");
@@ -36,6 +36,6 @@ export async function checkKlineAgainstAlerts15m() {
 
     await sendTriggeredAlertsReport(projectName, matchingAlerts);
   } catch (error) {
-    console.error("Error in checkKlineAgainstAlerts15m:", error);
+    logger.error("Error in checkKlineAgainstAlerts15m:", error);
   }
 }

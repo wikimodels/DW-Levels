@@ -12,7 +12,9 @@ export async function updateAlert(
     // ✅ Step 1: Check if the alert exists
     const existingAlert = await kv.get<Alert>(alertKey);
     if (!existingAlert.value) {
-      console.warn(`⚠️ Alert with ID ${alert.id} not found in ${collectionName}`);
+      console.warn(
+        `⚠️ Alert with ID ${alert.id} not found in ${collectionName}`
+      );
       return false;
     }
 
@@ -26,7 +28,7 @@ export async function updateAlert(
 
     return true;
   } catch (error) {
-    console.error(`❌ Error updating alert in ${collectionName}:`, error);
+    logger.error(`❌ Error updating alert in ${collectionName}:`, error);
     return false;
   } finally {
     kv.close();

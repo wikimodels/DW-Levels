@@ -1,34 +1,38 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { CoinOperator } from "../../global/coin-operator.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { DColors } from "../../shared/colors.ts";
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function deleteWorkingCoins(symbols: string[]): Promise<boolean> {
+  const config = ConfigOperator.getConfig();
+
   try {
     if (!symbols || !Array.isArray(symbols) || symbols.length === 0) {
-      console.error(
+      logger.error(
         `[CoinOperator] Invalid input: Symbols array is empty or not provided.`
       );
       return false;
     }
 
     await CoinOperator.removeCoins(symbols);
-    console.log(
-      `[CoinOperator] Successfully removed coins: ${symbols.join(", ")}`
+    logger.success(
+      `[CoinOperator] Successfully removed coins: ${symbols.join(", ")}`,
+      DColors.green
     );
     return true;
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
       await sendErrorReport(
-        env["PROJECT_NAME"],
+        config.projectName,
         "deleteWorkingCoins",
         err.toString()
       );
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(`[CoinOperator] Failed to delete ${symbols.length} coins`, {
+    logger.error(`[CoinOperator] Failed to delete ${symbols.length} coins`, {
       error: err.message,
       symbols: symbols,
       stack: err.stack,

@@ -1,32 +1,34 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
-import { AlertOperator } from "../../global/alert-operator.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
+import { LineAlertOperator } from "../../global/line-alert-operator.ts";
+import { logger } from "../../global/logger.ts";
 import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 export async function refreshRepos() {
+  const config = ConfigOperator.getConfig();
   try {
     // Iterate over all collections defined in AlertsCollection
     for (const collectionName of Object.values(AlertsCollection)) {
       try {
-        // Refresh AlertOperator's repository for the current collection
-        await AlertOperator.refreshRepo(collectionName);
+        // Refresh LineAlertOperator's repository for the current collection
+        await LineAlertOperator.refreshRepo(collectionName);
       } catch (error) {
-        console.error(
-          `%c[DW-Levels] Error refreshing AlertOperator for collection "${collectionName}":`,
-          "color: red;",
-          error
-        );
         const err = error instanceof Error ? error : new Error(String(error));
+        logger.error(
+          `Error refreshing LineAlertOperator for collection "${collectionName}":`,
+          err
+        );
+
         try {
-          const env = await load();
+          const config = await ConfigOperator.getConfig();
           await sendErrorReport(
-            env["PROJECT_NAME"],
-            "AlertOperator:refreshRepos()",
+            config.projectName,
+            "LineAlertOperator:refreshRepos()",
             err.toString()
           );
         } catch (reportError) {
-          console.error("Failed to send error report:", reportError);
+          logger.error("Failed to send error report:", reportError);
         }
       }
 
@@ -34,30 +36,26 @@ export async function refreshRepos() {
         // Refresh VwapAlertOperator's repository for the current collection
         await VwapAlertOperator.refreshRepo(collectionName);
       } catch (error) {
-        console.error(
-          `%c[DW-Levels] Error refreshing VwapAlertOperator for collection "${collectionName}":`,
-          "color: red;",
-          error
-        );
         const err = error instanceof Error ? error : new Error(String(error));
+        logger.error(
+          `Error refreshing VwapAlertOperator for collection "${collectionName}":`,
+
+          err
+        );
+
         try {
-          const env = await load();
           await sendErrorReport(
-            env["PROJECT_NAME"],
+            config.projectName,
             "VwapAlertOperator:refreshRepos()",
             err.toString()
           );
         } catch (reportError) {
-          console.error("Failed to send error report:", reportError);
+          logger.error("Failed to send error report:", reportError);
         }
       }
     }
   } catch (error) {
     // Catch any unexpected errors during the overall refresh process
-    console.error(
-      `%c[DW-Levels] Unexpected error during refreshRepos execution:`,
-      "color: red;",
-      error
-    );
+    logger.error(`Unexpected error during refreshRepos execution:`, error);
   }
 }

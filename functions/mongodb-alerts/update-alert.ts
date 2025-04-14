@@ -1,16 +1,19 @@
-import { AlertOperator } from "./../../global/alert-operator.ts";
+import { LineAlertOperator } from "../../global/line-alert-operator.ts";
 import { Alert } from "../../models/alert.ts";
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { logger } from "../../global/logger.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
 
 export async function updateAlert(
   collectionName: string,
   filter: Partial<Alert>,
   updateData: Partial<Alert>
 ): Promise<boolean> {
+  const config = ConfigOperator.getConfig();
+
   try {
     // Attempt to update the alert
-    await AlertOperator.updateAlert(collectionName, filter, updateData);
+    await LineAlertOperator.updateAlert(collectionName, filter, updateData);
     console.log(
       `✅ Alert in collection ${collectionName} updated successfully`
     );
@@ -18,12 +21,11 @@ export async function updateAlert(
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
-      await sendErrorReport(env["PROJECT_NAME"], "updateAlert", err.toString());
+      await sendErrorReport(config.projectName, "updateAlert", err.toString());
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(
+    logger.error(
       `❌ Error updating alert in collection ${collectionName}:`,
       error
     );

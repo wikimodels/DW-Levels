@@ -13,7 +13,7 @@ export async function fetchWorkingCoins(): Promise<Coin[]> {
 
     return coins;
   } catch (error) {
-    console.error(
+    logger.error(
       `❌ Failed to fetch active alerts from ${collectionName}:`,
       error
     );

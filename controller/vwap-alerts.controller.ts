@@ -7,6 +7,7 @@ import { deleteManyVwap } from "../functions/mongodb-vwap-alerts/delete-many-vwa
 import { moveManyVwap } from "../functions/mongodb-vwap-alerts/move-many-vwap-alerts.ts";
 import { fetchVwapAlertsBySymbol } from "../functions/mongodb-vwap-alerts/fetch-vwap-alerts-by-symbol.ts";
 import { deleteBySymbolAndOpenTime } from "../functions/mongodb-vwap-alerts/delete-by-symbol-and-open-time.ts";
+import { logger } from "../global/logger.ts";
 
 export async function getVwapAlertsController(req: Request, res: Response) {
   try {
@@ -30,8 +31,8 @@ export async function getVwapAlertsController(req: Request, res: Response) {
 
     return res.status(200).json(alerts);
   } catch (error) {
-    console.error("❌ Error fetching alerts:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    logger.error("❌ Error fetching alerts:", error);
+    return res.status(500).json({ error: "Error in getVwapAlertsController" });
   }
 }
 
@@ -70,8 +71,8 @@ export const addVwapAlertController = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to add alert." });
     }
   } catch (error) {
-    console.error("❌ Error in addAlertController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Error in addAlertController" });
   }
 };
 
@@ -111,8 +112,8 @@ export const updateVwapAlertController = async (
       return res.status(500).json({ error: "Failed to add alert." });
     }
   } catch (error) {
-    console.error("❌ Error in addAlertController:", error);
-    return res.status(500).json({ error: "Internal server error." });
+    logger.error("❌ Error in addAlertController:", error);
+    return res.status(500).json({ error: "Error in updateAlertController" });
   }
 };
 
@@ -157,8 +158,8 @@ export const deleteManyVwapController = async (req: Request, res: Response) => {
         .json({ message: "Some alerts might not have been deleted" });
     }
   } catch (error) {
-    console.error("❌ Error in deleteManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in deleteManyController:", error);
+    return res.status(500).json({ error: "Error in deleteManyController" });
   }
 };
 
@@ -200,7 +201,6 @@ export const deleteBySymbolAndOpenTimeController = async (
       collectionName as AlertsCollection,
       openTime
     );
-    console.log(symbol, collectionName, openTime);
     if (success) {
       return res.status(200).json({ message: "Alerts deleted successfully!" });
     } else {
@@ -209,8 +209,10 @@ export const deleteBySymbolAndOpenTimeController = async (
         .json({ message: "Some alerts might not have been deleted" });
     }
   } catch (error) {
-    console.error("❌ Error in deleteManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in deleteManyController:", error);
+    return res
+      .status(500)
+      .json({ error: "Error in deleteBySymbolAndOpenTimeController" });
   }
 };
 
@@ -249,8 +251,8 @@ export const deleteOneVwapController = async (req: Request, res: Response) => {
         .json({ message: "Some alerts might not have been deleted" });
     }
   } catch (error) {
-    console.error("❌ Error in deleteManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in deleteManyController:", error);
+    return res.status(500).json({ error: "Error in deleteOneVwapController" });
   }
 };
 
@@ -297,8 +299,8 @@ export const moveManyVwapController = async (req: Request, res: Response) => {
       deleteCount: result.deleteCount,
     });
   } catch (error) {
-    console.error("❌ Error in moveManyController:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Error in moveManyController:", error);
+    return res.status(500).json({ error: "Error in moveManyController" });
   }
 };
 
@@ -329,7 +331,10 @@ export const getVwapAlertsBySymbolController = async (
     );
     res.status(200).json(data);
   } catch (error) {
-    console.error("Error saving anchor point:", error);
-    res.status(500).json({ error: "Internal Server Error", details: error });
+    logger.error("Error saving anchor point:", error);
+    res.status(500).json({
+      error: "Error in getVwapAlertsBySymbolController",
+      details: error,
+    });
   }
 };

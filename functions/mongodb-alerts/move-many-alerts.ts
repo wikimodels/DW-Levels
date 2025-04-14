@@ -1,5 +1,7 @@
-import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
-import { AlertOperator } from "../../global/alert-operator.ts";
+import { ConfigOperator } from "../../global/config-operator.ts";
+import { LineAlertOperator } from "../../global/line-alert-operator.ts";
+import { logger } from "../../global/logger.ts";
+import { DColors } from "../../shared/colors.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
 export async function moveMany(
@@ -9,43 +11,43 @@ export async function moveMany(
 ): Promise<{ insertCount: number; deleteCount: number }> {
   let insertCount = 0;
   let deleteCount = 0;
-
+  const config = ConfigOperator.getConfig();
   try {
-    const sourceAlerts = await AlertOperator.getAlerts(sourceCollection);
+    const sourceAlerts = await LineAlertOperator.getAlerts(sourceCollection);
 
     // ✅ Filter alerts that match the given IDs
     const alertsToMove = sourceAlerts.filter((alert) => ids.includes(alert.id));
 
     if (alertsToMove.length === 0) {
-      console.log(`⚠️ No matching alerts found for moving.`);
+      logger.info(`⚠️ No matching alerts found for moving.`, DColors.yellow);
       return { insertCount, deleteCount };
     }
 
     // ✅ Move the alerts to the target collection
     for (const alert of alertsToMove) {
-      await AlertOperator.addAlert(targetCollection, alert);
+      await LineAlertOperator.addAlert(targetCollection, alert);
     }
 
     // ✅ Remove the alerts from the source collection
-    await AlertOperator.removeAlerts(sourceCollection, ids);
+    await LineAlertOperator.removeAlerts(sourceCollection, ids);
 
     insertCount = alertsToMove.length;
     deleteCount = alertsToMove.length;
 
-    console.log(
-      `✅ Moved ${insertCount} alerts from ${sourceCollection} to ${targetCollection}`
+    logger.success(
+      `✅ Moved ${insertCount} alerts from ${sourceCollection} to ${targetCollection}`,
+      DColors.green
     );
 
     return { insertCount, deleteCount };
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     try {
-      const env = await load();
-      await sendErrorReport(env["PROJECT_NAME"], "moveMany", err.toString());
+      await sendErrorReport(config.projectName, "moveMany", err.toString());
     } catch (reportError) {
-      console.error("Failed to send error report:", reportError);
+      logger.error("Failed to send error report:", reportError);
     }
-    console.error(
+    logger.error(
       `❌ Error moving alerts from ${sourceCollection} to ${targetCollection}:`,
       error
     );

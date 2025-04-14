@@ -69,7 +69,7 @@ export function getMatchingVwapAlerts(
     }
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
-    console.error("Failed to match alerts against kline data", {
+    logger.error("Failed to match alerts against kline data", {
       error: err.message,
       alertCount: alerts.length,
       symbolCount: Object.keys(klinedata).length,

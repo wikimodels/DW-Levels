@@ -1,23 +1,22 @@
-import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
+import { LineAlertOperator } from "../../global/line-alert-operator.ts";
 import { logger } from "../../global/logger.ts";
 import { DColors } from "../../shared/colors.ts";
 import { ConfigOperator } from "../../global/config-operator.ts";
 
-export async function deleteBySymbolAndOpenTime(
+export async function deleteBySymbolAndPrice(
   symbol: string,
   collectionName: AlertsCollection,
-  openTime?: number
+  price?: number
 ): Promise<boolean> {
   const config = ConfigOperator.getConfig();
-
   try {
     // Attempt to remove the alerts using LineAlertOperator
-    await VwapAlertOperator.removeBySymbolAndOpenTime(
+    await LineAlertOperator.removeBySymbolAndPrice(
       symbol,
       collectionName,
-      openTime
+      price
     );
     logger.success(
       `✅ Successfully deleted  alerts from ${collectionName}`,
@@ -29,7 +28,7 @@ export async function deleteBySymbolAndOpenTime(
     try {
       await sendErrorReport(
         config.projectName,
-        "deleteBySymbolAndOpenTime",
+        "deleteBySymbolAndPice",
         err.toString()
       );
     } catch (reportError) {

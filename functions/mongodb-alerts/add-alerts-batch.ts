@@ -1,4 +1,5 @@
-import { AlertOperator } from "../../global/alert-operator.ts";
+import { LineAlertOperator } from "../../global/line-alert-operator.ts";
+import { logger } from "../../global/logger.ts";
 import { AlertBase } from "../../models/alert-base.ts";
 import { Alert } from "../../models/alert.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
@@ -15,7 +16,7 @@ export async function addAlertsBatch(
     try {
       coins = await fetchProxyCoins();
     } catch (error) {
-      console.error("Error fetching proxy coins:", error);
+      logger.error("Error fetching proxy coins:", error);
       return {
         success: false,
         message: "Failed to fetch proxy coins.",
@@ -26,12 +27,12 @@ export async function addAlertsBatch(
     // Step 2: Check for duplicate alert names
     let duplicatedAlertNames: string[];
     try {
-      duplicatedAlertNames = await AlertOperator.findDuplicateAlertNames(
+      duplicatedAlertNames = await LineAlertOperator.findDuplicateAlertNames(
         alertBases,
         AlertsCollection.WorkingAlerts
       );
     } catch (error) {
-      console.error("Error checking for duplicate alert names:", error);
+      logger.error("Error checking for duplicate alert names:", error);
       return {
         success: false,
         message: "Failed to check for duplicate alert names.",
@@ -42,9 +43,12 @@ export async function addAlertsBatch(
     // Step 3: Check for corrupted symbols
     let corruptedSymbols: string[];
     try {
-      corruptedSymbols = AlertOperator.findCorruptedSymbols(alertBases, coins);
+      corruptedSymbols = LineAlertOperator.findCorruptedSymbols(
+        alertBases,
+        coins
+      );
     } catch (error) {
-      console.error("Error finding corrupted symbols:", error);
+      logger.error("Error finding corrupted symbols:", error);
       return {
         success: false,
         message: "Failed to find corrupted symbols.",
@@ -54,8 +58,6 @@ export async function addAlertsBatch(
 
     // Step 4: Handle cases where duplicates or corrupted symbols exist
     if (duplicatedAlertNames.length > 0 || corruptedSymbols.length > 0) {
-      console.log("Duplicate Alert Names:", duplicatedAlertNames);
-      console.log("Corrupted Symbols:", corruptedSymbols);
       return {
         success: false,
         message:
@@ -68,9 +70,9 @@ export async function addAlertsBatch(
     // Step 5: Create alerts
     let alerts: Alert[];
     try {
-      alerts = AlertOperator.createAlerts(alertBases, coins);
+      alerts = LineAlertOperator.createAlerts(alertBases, coins);
     } catch (error) {
-      console.error("Error creating alerts:", error);
+      logger.error("Error creating alerts:", error);
       return {
         success: false,
         message: "Failed to create alerts.",
@@ -80,9 +82,9 @@ export async function addAlertsBatch(
 
     // Step 6: Add alerts to the database
     try {
-      await AlertOperator.addManyAlerts(collectionName, alerts);
+      await LineAlertOperator.addManyAlerts(collectionName, alerts);
     } catch (error) {
-      console.error("Error adding alerts to the database:", error);
+      logger.error("Error adding alerts to the database:", error);
       return {
         success: false,
         message: "Failed to add alerts to the database.",
@@ -98,7 +100,7 @@ export async function addAlertsBatch(
     };
   } catch (error) {
     // Catch-all for any unexpected errors
-    console.error("Unexpected error in addAlertsBatch:", error);
+    logger.error("Unexpected error in addAlertsBatch:", error);
     return {
       success: false,
       message: "An unexpected error occurred while processing alerts.",

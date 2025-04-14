@@ -23,7 +23,7 @@ export async function updateWorkingCoin(coin: Coin): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error(`❌ Error updating alert in ${collectionName}:`, error);
+    logger.error(`❌ Error updating alert in ${collectionName}:`, error);
     return false;
   } finally {
     kv.close();
