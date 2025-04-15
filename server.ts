@@ -1,3 +1,4 @@
+import { GoogleAuthOperator } from "./global/google-auth-operator.ts";
 import { VwapAlertOperator } from "./global/vwap-alert-operator.ts";
 import { TelegramBotOperator } from "./global/tg-bot-operator.ts";
 import initializeApp from "./app/initialize-app.ts";
@@ -13,13 +14,12 @@ async function initializeApplication() {
     // Step 1: Initialize ConfigOperator first
     await ConfigOperator.initialize();
     const config = ConfigOperator.getConfig();
-
-    // Step 2: Initialize other operators in sequence
     await CoinOperator.initialize(config);
     await TelegramBotOperator.initialize(config);
-
     await VwapAlertOperator.initialize(config);
-    await LineAlertOperator.initialize(config); // Step 3: Start the application
+    await LineAlertOperator.initialize(config);
+    await GoogleAuthOperator.initialize(config);
+
     const app = await initializeApp(config);
     app.listen({ port: 80 }, "0.0.0.0", () => {
       logger.success("Server --> started...", DColors.green);

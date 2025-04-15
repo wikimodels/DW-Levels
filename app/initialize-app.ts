@@ -10,10 +10,10 @@ import general from "../routes/general.route.ts";
 import { Config } from "../models/config.ts";
 
 const initializeApp = (config: Config): Promise<Application> => {
-  const allowedOrigins = config.origins;
+  const allowedOrigins = config.allowedOrigins;
 
   if (!Array.isArray(allowedOrigins) || allowedOrigins.length === 0) {
-    throw new Error("No valid origins found in the configuration");
+    throw new Error("No valid allowed origins found in the configuration");
   }
   const app = express();
   app.use(express.json());

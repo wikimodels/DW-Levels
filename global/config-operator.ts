@@ -56,12 +56,12 @@ export class ConfigOperator {
         tgDenoWsBusiness: secrets["TG_DENO_WS_BUSINESS"] || "",
         tgReportsBot: secrets["TG_REPORTS_BOT"] || "",
         ngrok: secrets["NGROK"] || "",
-        origins: [
-          secrets["ORIGIN_I"],
-          secrets["ORIGIN_II"],
-          secrets["ORIGIN_III"],
-          secrets["ORIGIN_IV"],
-        ].filter(Boolean),
+        allowedOrigins: [
+          secrets["ALLOWED_ORIGIN_I"],
+          secrets["ALLOWED_ORIGIN_II"],
+          secrets["ALLOWED_ORIGIN_III"],
+          secrets["ALLOWED_ORIGIN_IV"],
+        ],
         projectName: secrets["PROJECT_NAME"] || "",
         mongoDb: secrets["MONGO_DB"],
         coinsApi: secrets["COINS"] || "",
@@ -74,9 +74,20 @@ export class ConfigOperator {
           oi: secrets["OI"] || "",
           fr: secrets["FR"] || "",
         },
+        googleAuth: {
+          clientId: secrets["GOOGLE_CLIENT_ID"] || "",
+          project_id: secrets["GOOGLE_PROJECT_ID"] || "",
+          auth_uri: secrets["GOOGLE_AUTH_URI"] || "",
+          token_uri: secrets["GOOGLE_TOKEN_URI"] || "",
+          auth_provider_x509_cert_url:
+            secrets["GOOGLE_AUTH_PROVIDER_X509_CERT_URL"] || "",
+          client_secret: secrets["GOOGLE_CLIENT_SECRET"] || "",
+          redirect_uris: [secrets["GOOGLE_REDIRECT_URI_I"]],
+          javascript_origins: [secrets["GOOGLE_JAVASCRIPT_ORIGIN_I"]],
+        },
       };
 
-      logger.success("ConfigOperator ---> initialized...", DColors.magenta);
+      logger.info("ConfigOperator ---> initialized...", DColors.cyan);
     } catch (error) {
       logger.error("Failed to initialize configuration:", error);
       throw error;

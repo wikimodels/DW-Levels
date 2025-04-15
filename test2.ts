@@ -12,17 +12,4 @@ const token =
 
 await ConfigOperator.initialize();
 const config = ConfigOperator.getConfig();
-const GOOGLE_CLIENT_ID = config.googleAuth.clientId;
-
-const JWKS = createRemoteJWKSet(
-  new URL("https://www.googleapis.com/oauth2/v3/certs")
-);
-
-const { payload } = await jwtVerify(token, JWKS, {
-  issuer: "https://accounts.google.com",
-  audience: GOOGLE_CLIENT_ID,
-});
-
-const userData = payload as GoogleUserData;
-// Function to verify the Google ID token
-console.log(userData);
+await console.log(userData);

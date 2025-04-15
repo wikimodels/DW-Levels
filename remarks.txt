@@ -3,7 +3,7 @@ denon run --allow-net --allow-import --allow-read --allow-env --allow-write --un
 Worknig with this package
 https://www.npmjs.com/package/binance
 
-doppler run -- deployctl deploy --project dw-levels --regions=arn --allow-env --entrypoint server.ts
+
  
 import _ from "https://cdn.skypack.dev/lodash";
 
@@ -22,7 +22,7 @@ Current time in POSTMANs
 
 deployctl deploy --project d-ws --entrypoint server.ts
 
-deployctl projects delete d-ws
+deployctl projects delete dw-levels
 
  export enum ConsoleColors {
   "white" = "white",

@@ -1,9 +1,8 @@
-// shared/logger.ts
-
 import { DColors } from "../shared/colors.ts";
 
 class Logger {
   private projectName = "DW-Levels";
+
   /**
    * Logs an informational message.
    * @param message - The message to log.
@@ -26,13 +25,9 @@ class Logger {
    * @param error - (Optional) The error object to include in the log.
    */
   public error(message: string, error?: unknown): void {
-    logger.error(`%c[${this.projectName}]:${message}`, DColors.red);
+    console.error(`%c[${this.projectName}]:${message}`, `color:${DColors.red}`);
     if (error) {
-      logger.error(
-        `%c[${this.projectName}]:Error Details:`,
-        DColors.red,
-        error
-      );
+      console.error(`[${this.projectName}]:Error Details:`, error);
     }
   }
 

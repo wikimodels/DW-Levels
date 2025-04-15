@@ -31,7 +31,7 @@ export class VwapAlertOperator {
       // Validate MongoDB connection string
       if (!config.mongoDb) {
         throw new Error(
-          "[DW-Levels] VwapAlertOperator --> MONGO_DB is not defined in the environment variables."
+          "VwapAlertOperator --> MONGO_DB is not defined in the environment variables."
         );
       }
 
@@ -43,7 +43,7 @@ export class VwapAlertOperator {
       // Load all data into memory
       await this.loadAllData(config.projectName);
 
-      logger.success("VwapAlertOperator --> initialized...", DColors.yellow);
+      logger.success("VwapAlertOperator --> initialized...", DColors.magenta);
     } catch (error) {
       logger.error("❌ Failed to initialize VwapAlertOperator:", error);
       this.dbClient = null; // Reset to allow retrying initialization

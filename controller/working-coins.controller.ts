@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-unused-vars
 import { Request, Response } from "npm:express@4.18.2";
 import { Coin } from "../models/coin.ts";
 import { fetchWorkingCoins } from "../functions/mongodb-working-coins/fetch-working-coins.ts";
