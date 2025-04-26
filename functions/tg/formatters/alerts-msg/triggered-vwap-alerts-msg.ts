@@ -5,9 +5,9 @@ import { UnixToNamedTimeRu } from "../../../utils/time-converter.ts";
 
 function formatVwapAlertItem(alert: VwapAlert, index: number): string {
   const tvLink = getTradingViewLink(alert.symbol, alert.exchanges || []);
-  return `<a href="${tvLink}"><b>${index + 1}. ${alert.symbol}/<i>${
-    alert.anchorTimeStr
-  }</i></b></a>`;
+  return `<a href="${tvLink}"><b>${index + 1}. ${
+    alert.symbol.split("USDT")[0]
+  }/<i>${alert.anchorTimeStr}</i></b></a>`;
 }
 
 function formatReportTime(): string {
