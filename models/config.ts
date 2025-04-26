@@ -1,4 +1,6 @@
-export type Config = {
+export interface Config {
+  alerts_web: string;
+  alerts_mobile: string;
   tgUser: string;
   tgDenoWsTech: string;
   tgDenoWsBusiness: string;
@@ -27,4 +29,4 @@ export type Config = {
     oi: string;
     fr: string;
   };
-};
+}

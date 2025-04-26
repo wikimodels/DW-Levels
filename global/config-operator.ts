@@ -1,9 +1,10 @@
 // ConfigOperator.ts
 import Doppler, { DownloadResponse } from "npm:@dopplerhq/node-sdk";
-import { Config } from "../models/config.ts";
+
 import { load } from "https://deno.land/std@0.223.0/dotenv/mod.ts";
 import { DColors } from "../shared/colors.ts";
 import { logger } from "./logger.ts";
+import { Config } from "../models/config.ts";
 
 const env = await load();
 
@@ -51,6 +52,8 @@ export class ConfigOperator {
 
       // Populate the static in-memory Config structure
       ConfigOperator.config = {
+        alerts_web: secrets["ALERTS_WEB"],
+        alerts_mobile: secrets["ALERTS_MOBILE"],
         tgUser: secrets["TG_USER"],
         tgDenoWsTech: secrets["TG_DENO_WS_TECH"],
         tgDenoWsBusiness: secrets["TG_DENO_WS_BUSINESS"] || "",

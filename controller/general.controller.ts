@@ -6,6 +6,7 @@ import { refreashConfig } from "../functions/config/reload-config-from-doppler.t
 import { authenticateUser } from "../functions/config/authenticate-user.ts";
 import { validateEmail } from "../functions/config/validate-email.ts";
 import { cleanTriggeredAlerts } from "../functions/utils/clean-triggered-alerts.ts";
+import { ConfigOperator } from "../global/config-operator.ts";
 
 export async function refreshReposController(_req: Request, res: Response) {
   try {
@@ -79,6 +80,15 @@ export const validateEmailController = async (req: any, res: any) => {
     res.send(data);
   } catch (error) {
     logger.error("Error in googleAuthController:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const getConfigController = (_req: any, res: any) => {
+  try {
+    res.send(ConfigOperator.getConfig());
+  } catch (error) {
+    logger.error("Error in getConfigController:", error);
     res.status(500).send("Internal Server Error");
   }
 };

@@ -1,17 +1,19 @@
+import { ConfigOperator } from "../../../../global/config-operator.ts";
 import { Alert } from "../../../../models/alert.ts";
-
+import { getTradingViewLink } from "../../../utils/get-tv-link.ts";
 import { UnixToNamedTimeRu } from "../../../utils/time-converter.ts";
 
 function formatAlertItem(alert: Alert, index: number): string {
-  return `
-<b>${index + 1}. ${alert.symbol}/<i>${alert.alertName}</i></b>
-`;
+  const tvLink = getTradingViewLink(alert.symbol, alert.exchanges || []);
+  return `<a href="${tvLink}"><b>${index + 1}. <i>${
+    alert.alertName
+  }</i></b></a>`;
 }
 
 function formatReportTime(): string {
-  return `⏰ <b>Report Generated:</b> ${UnixToNamedTimeRu(
-    new Date().getTime()
-  )}`;
+  const config = ConfigOperator.getConfig();
+  const currentTime = UnixToNamedTimeRu(Date.now() + 3 * 60 * 60 * 1000);
+  return `${currentTime}  <a href="${config.alerts_mobile}" title="View Alerts on Mobile">🈸🈸🈸</a>`;
 }
 
 export function formatTriggeredAlertsMsg(
@@ -22,10 +24,10 @@ export function formatTriggeredAlertsMsg(
     return `<b>✴️ ${projectName}: NO TRIGGERED ALERTS</b>`;
   }
 
-  const alertItems = alerts.map(formatAlertItem).join("");
+  const alertItems = alerts.map(formatAlertItem).join("\n");
 
   return `
-<b>✴️ ${projectName}: TRIGGERED ALERTS</b>
+<b>✴️ LINE ALERTS</b>
 ${alertItems}
 ${formatReportTime()}
 `.trim();
