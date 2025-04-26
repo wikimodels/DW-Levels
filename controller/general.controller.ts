@@ -4,6 +4,8 @@ import { refreshRepos } from "../functions/mongodb-vwap-alerts/refresh-repos.ts"
 import { logger } from "../global/logger.ts";
 import { refreashConfig } from "../functions/config/reload-config-from-doppler.ts";
 import { authenticateUser } from "../functions/config/authenticate-user.ts";
+import { validateEmail } from "../functions/config/validate-email.ts";
+import { cleanTriggeredAlerts } from "../functions/utils/clean-triggered-alerts.ts";
 
 export async function refreshReposController(_req: Request, res: Response) {
   try {
@@ -12,6 +14,23 @@ export async function refreshReposController(_req: Request, res: Response) {
   } catch (error) {
     logger.error("❌ Error refreshing repos:", error);
     return res.status(500).json({ error: "Error in refreshReposController" });
+  }
+}
+
+export async function cleanTriggeredAlertsController(
+  _req: Request,
+  res: Response
+) {
+  try {
+    await cleanTriggeredAlerts();
+    return res
+      .status(200)
+      .json({ message: "Triggered Alerts are cleaned up successfully!" });
+  } catch (error) {
+    logger.error("❌ Error cleaning up Triggered Alerts:", error);
+    return res
+      .status(500)
+      .json({ error: "Error in cleanTriggeredAlertsController" });
   }
 }
 
@@ -40,6 +59,23 @@ export const googleAuthController = async (req: any, res: any) => {
     }
 
     const data = await authenticateUser(jwtToken);
+    res.send(data);
+  } catch (error) {
+    logger.error("Error in googleAuthController:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const validateEmailController = async (req: any, res: any) => {
+  try {
+    // Extract the token from the request body or Authorization header
+    const email = req.body?.email;
+    console.log(email);
+    if (!email) {
+      return res.status(400).send("Email is missing");
+    }
+
+    const data = await validateEmail(email);
     res.send(data);
   } catch (error) {
     logger.error("Error in googleAuthController:", error);

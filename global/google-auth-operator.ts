@@ -13,7 +13,7 @@ import { logger } from "./logger.ts";
 import { UserData } from "../models/user-data.ts";
 import { Config } from "../models/config.ts";
 
-export class GoogleAuthOperator {
+export class AuthOperator {
   private static dbClient: MongoClient | null = null;
   private static db: Database | null = null;
   private static readonly dbName = "auth";
@@ -31,9 +31,9 @@ export class GoogleAuthOperator {
       this.dbClient = new MongoClient();
       await this.dbClient.connect(MONGO_DB_URI);
       this.db = this.dbClient.database(this.dbName);
-      logger.success("GoogleAuthOperator ---> initialized...", DColors.magenta);
+      logger.success("AuthOperator ---> initialized...", DColors.magenta);
     } catch (error) {
-      console.error("Failed to initialize GoogleAuthOperator:", error);
+      console.error("Failed to initialize AuthOperator:", error);
       throw error;
     }
   }
@@ -119,6 +119,17 @@ export class GoogleAuthOperator {
       return user;
     } catch (error) {
       logger.error("Authentication failed:", error);
+      throw error;
+    }
+  }
+
+  public static async validateEmail(email: string) {
+    try {
+      const isWhitelisted = await this.isEmailWhitelisted(email);
+
+      return { isWhitelisted };
+    } catch (error) {
+      logger.error("Email Validation failed:", error);
       throw error;
     }
   }

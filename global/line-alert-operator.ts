@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import {
   MongoClient,
   Database,
@@ -160,6 +161,7 @@ export class LineAlertOperator {
    * @param collectionName - The name of the collection.
    * @returns A list of alerts from the database.
    */
+
   private static async getAlertsFromDB(
     collectionName: string
   ): Promise<Alert[]> {
@@ -564,6 +566,60 @@ export class LineAlertOperator {
       );
       throw new Error(
         `Failed to delete alerts for symbol "${symbol}" in collection "${collectionName}"`
+      );
+    }
+  }
+
+  public static async cleanTriggeredAlerts() {
+    const collectionName = AlertsCollection.TriggeredAlerts;
+    try {
+      // Step 1: Aggregate to find the latest alert for each alertName
+      const latestAlerts = await this.getCollection(collectionName).aggregate([
+        {
+          $sort: { alertName: 1, activationTime: -1 }, // Sort by alertName and activationTime (descending)
+        },
+        {
+          $group: {
+            _id: "$alertName", // Group by alertName
+            latestAlertId: { $first: "$_id" }, // Keep the _id of the first document (latest activationTime)
+          },
+        },
+        {
+          $project: {
+            _id: 0, // Exclude the default _id field
+            latestAlertId: 1, // Include only the latestAlertId
+          },
+        },
+      ]);
+
+      // Step 2: Extract the latestAlertId values into an array
+      const latestAlertIds = await latestAlerts.map(
+        (doc: any) => doc.latestAlertId
+      );
+
+      // Step 3: Delete all alerts except those in the latestAlertIds array
+      const deleteResult = await this.getCollection(collectionName).deleteMany({
+        _id: { $nin: latestAlertIds }, // Delete alerts not in the latestAlertIds array
+      });
+      await this.refreshRepo(AlertsCollection.TriggeredAlerts);
+      console.log(`Deleted ${deleteResult} alerts.`);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      try {
+        await sendErrorReport(
+          "LineAlertOperator",
+          "cleanTriggeredAlerts()",
+          err.toString()
+        );
+      } catch (reportError) {
+        logger.error("Failed to send error report:", reportError);
+      }
+      logger.error(
+        `Error cleaning Triggered Alerts in collection "${collectionName}":`,
+        error
+      );
+      throw new Error(
+        `Failed to clean LineAlerts data in collection "${collectionName}"`
       );
     }
   }

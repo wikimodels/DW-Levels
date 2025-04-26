@@ -20,7 +20,7 @@ Current time in POSTMANs
 //-------------- DENO COMMANDS ------------------
 
 
-deployctl deploy --project d-ws --entrypoint server.ts
+deployctl deploy --project dw-levels --entrypoint server.ts
 
 deployctl projects delete dw-levels
 
