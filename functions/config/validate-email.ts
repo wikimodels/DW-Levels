@@ -1,7 +1,7 @@
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 import { logger } from "../../global/logger.ts";
 import { ConfigOperator } from "../../global/config-operator.ts";
-import { AuthOperator } from "../../global/google-auth-operator.ts";
+import { AuthOperator } from "../../global/auth-operator.ts";
 
 export async function validateEmail(email: string): Promise<boolean> {
   const config = ConfigOperator.getConfig();

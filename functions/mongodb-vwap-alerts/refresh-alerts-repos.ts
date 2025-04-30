@@ -5,7 +5,7 @@ import { VwapAlertOperator } from "../../global/vwap-alert-operator.ts";
 import { AlertsCollection } from "../../models/alerts-collections.ts";
 import { sendErrorReport } from "../tg/notifications/send-error-report.ts";
 
-export async function refreshRepos() {
+export async function refreshAlertsRepos() {
   const config = ConfigOperator.getConfig();
   try {
     // Iterate over all collections defined in AlertsCollection
@@ -24,7 +24,7 @@ export async function refreshRepos() {
           const config = await ConfigOperator.getConfig();
           await sendErrorReport(
             config.projectName,
-            "LineAlertOperator:refreshRepos()",
+            "LineAlertOperator:refreshAlertsRepos()",
             err.toString()
           );
         } catch (reportError) {
@@ -46,7 +46,7 @@ export async function refreshRepos() {
         try {
           await sendErrorReport(
             config.projectName,
-            "VwapAlertOperator:refreshRepos()",
+            "VwapAlertOperator:refreshAlertsRepos()",
             err.toString()
           );
         } catch (reportError) {
@@ -56,6 +56,9 @@ export async function refreshRepos() {
     }
   } catch (error) {
     // Catch any unexpected errors during the overall refresh process
-    logger.error(`Unexpected error during refreshRepos execution:`, error);
+    logger.error(
+      `Unexpected error during refreshAlertsRepos execution:`,
+      error
+    );
   }
 }

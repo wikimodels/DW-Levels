@@ -1,4 +1,4 @@
-import { AuthOperator } from "./global/google-auth-operator.ts";
+import { AuthOperator } from "./global/auth-operator.ts";
 import { VwapAlertOperator } from "./global/vwap-alert-operator.ts";
 import { TelegramBotOperator } from "./global/tg-bot-operator.ts";
 import initializeApp from "./app/initialize-app.ts";

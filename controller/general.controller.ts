@@ -1,20 +1,26 @@
 // deno-lint-ignore-file no-explicit-any
 import { Request, Response } from "npm:express@4.18.2";
-import { refreshRepos } from "../functions/mongodb-vwap-alerts/refresh-repos.ts";
+import { refreshAlertsRepos } from "../functions/mongodb-vwap-alerts/refresh-alerts-repos.ts";
 import { logger } from "../global/logger.ts";
 import { refreashConfig } from "../functions/config/reload-config-from-doppler.ts";
 import { authenticateUser } from "../functions/config/authenticate-user.ts";
 import { validateEmail } from "../functions/config/validate-email.ts";
 import { cleanTriggeredAlerts } from "../functions/utils/clean-triggered-alerts.ts";
 import { ConfigOperator } from "../global/config-operator.ts";
+import { proxyBinanceRequest } from "../functions/bi-proxy.ts";
 
-export async function refreshReposController(_req: Request, res: Response) {
+export async function refreshAlertsReposController(
+  _req: Request,
+  res: Response
+) {
   try {
-    await refreshRepos();
+    await refreshAlertsRepos();
     return res.status(200).json({ message: "Repos refreshed successfully!" });
   } catch (error) {
     logger.error("❌ Error refreshing repos:", error);
-    return res.status(500).json({ error: "Error in refreshReposController" });
+    return res
+      .status(500)
+      .json({ error: "Error in refreshAlertsReposController" });
   }
 }
 
@@ -89,6 +95,23 @@ export const getConfigController = (_req: any, res: any) => {
     res.send(ConfigOperator.getConfig());
   } catch (error) {
     logger.error("Error in getConfigController:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+export const getBinanceProxyController = async (req: any, res: any) => {
+  console.log(req.url);
+  try {
+    const response = await proxyBinanceRequest(); // this is a Response object
+
+    const body = await response.text(); // extract body text
+    const status = response.status;
+    const contentType =
+      response.headers.get("Content-Type") || "application/json";
+
+    res.status(status).set("Content-Type", contentType).send(body);
+  } catch (error) {
+    logger.error("Error in getBinanceProxyController:", error);
     res.status(500).send("Internal Server Error");
   }
 };
